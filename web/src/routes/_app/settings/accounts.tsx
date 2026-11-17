@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PlaceholderSection } from '@/components/placeholder-page'
+import { AccountsPage } from '@/features/accounts/accounts-page'
 
 // See planning/02-design.md#settings (F-003)
 export const Route = createFileRoute('/_app/settings/accounts')({
-  component: () => <PlaceholderSection title="Chart of accounts" />,
+  component: AccountsPage,
 })

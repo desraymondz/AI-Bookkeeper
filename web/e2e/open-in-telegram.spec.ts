@@ -1,11 +1,14 @@
-import { expect, test } from '@playwright/test'
-import { BOT_USERNAME, mockApi } from './fixtures.ts'
+import { BOT_USERNAME, configureBusiness, expect, signIn, test } from './fixtures.ts'
 
 const telegramUrl = `https://t.me/${BOT_USERNAME}`
 
 test.describe('T-208 header Open in Telegram', () => {
-  test.beforeEach(async ({ context }) => {
-    await mockApi(context)
+  test.beforeEach(async ({ page, context }) => {
+    await signIn(page)
+    await configureBusiness(page)
+    await context.route('https://t.me/**', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Telegram</title>' }),
+    )
   })
 
   test('opens t.me/<bot username> in a new tab', async ({ page, context }) => {

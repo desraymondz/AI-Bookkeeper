@@ -2,13 +2,14 @@ import type { QueryClient } from '@tanstack/react-query'
 import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
 import { PageContainer } from '@/components/app-shell/app-shell'
 import { ErrorState } from '@/components/states'
+import { Toaster } from '@/components/ui/sonner'
 
 export type RouterContext = {
   queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: Outlet,
+  component: RootLayout,
   notFoundComponent: NotFound,
   errorComponent: ({ reset }) => (
     <PageContainer width="narrow">
@@ -16,6 +17,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     </PageContainer>
   ),
 })
+
+function RootLayout() {
+  return (
+    <>
+      <Outlet />
+      <Toaster />
+    </>
+  )
+}
 
 function NotFound() {
   return (
