@@ -237,3 +237,14 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
   - Orchestrator merges only if `preview` is an ancestor of the task branch; otherwise the branch goes back for re-integration. Verifiers review the integrated branch and run `make verify`.
 - Rejected: Orchestrator-only integration at merge time (what P1 did).
 - Affects: planning/build-plan.md (P2 conventions, P2-T00), AGENTS.md (git workflow, commands)
+
+## D-032 Token budget: scoped verifiers, quiet output, rules files
+- Date: 2026-11-18
+- Context: Owner asked to cut token spend. P2-T00 verifier (93k) cost more than its builder (77k), mostly from re-reading context and re-running the full suite with verbose output.
+- Decision:
+  - Verifiers run only the task's own tests (quiet) plus the white-box review; full lint, typecheck, suite and build run only when the diff touches shared infrastructure. Replaces the "verifiers run `make verify`" part of D-031.
+  - Orchestrator runs `make verify QUIET=1` on `preview` after each merge and `make e2e QUIET=1` once per batch; a failure blocks the next batch.
+  - `make verify|test|e2e QUIET=1` prints quiet pytest (`-q --tb=short -rfE`), dot reporters for Vitest and Playwright, and build output only on failure. Builders and verifiers always use it.
+  - Builder and verifier rules live in `planning/builder-rules.md` and `planning/verifier-rules.md`; prompts point to them instead of repeating them.
+- Rejected: Dropping the per-task verifier (loses the blind review).
+- Affects: planning/build-plan.md, Makefile, planning/builder-rules.md, planning/verifier-rules.md
