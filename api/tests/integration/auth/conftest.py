@@ -27,9 +27,9 @@ def _book_payload() -> dict[str, Any]:
 
 
 def dummy_book_routers() -> list[APIRouter]:
-    journal = APIRouter(prefix="/api/journal")
-    ledger = APIRouter(prefix="/api/ledger")
-    reports = APIRouter(prefix="/api/reports")
+    journal = APIRouter(prefix="/api/stub-journal")
+    ledger = APIRouter(prefix="/api/stub-ledger")
+    reports = APIRouter(prefix="/api/stub-reports")
     settings = APIRouter(prefix="/api/settings")
     documents = APIRouter(prefix="/api/documents")
 
@@ -70,11 +70,11 @@ def dummy_book_routers() -> list[APIRouter]:
 
 DUMMY_PROTECTED_PATHS: frozenset[str] = frozenset(
     {
-        "/api/journal",
-        "/api/journal/{entry_id}",
-        "/api/ledger/{account_id}",
-        "/api/reports/trial-balance",
-        "/api/reports/profit-and-loss",
+        "/api/stub-journal",
+        "/api/stub-journal/{entry_id}",
+        "/api/stub-ledger/{account_id}",
+        "/api/stub-reports/trial-balance",
+        "/api/stub-reports/profit-and-loss",
         "/api/settings",
         "/api/documents/{document_id}/file",
     }

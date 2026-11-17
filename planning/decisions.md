@@ -212,3 +212,15 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Decision: `price_rule` accepts `any_change` (default, D-007) and `increase_only` (only unit price increases go to the boss). F-013.7 applies whichever is set.
 - Rejected: A percentage threshold (left for later if the default proves noisy).
 - Affects: 01-prd.md F-002.2, F-013.7; api/src/bookkeeper/settings_service.py
+
+## D-030 Report definitions not fixed by the PRD
+- Date: 2026-11-18
+- Context: P1-T06 had to choose meanings the PRD leaves open; the verifier asked for them to be recorded.
+- Decision:
+  - Date presets (F-024.2), in business timezone: This month = 1st to today; Last month = whole previous month; Last 3 months and Last 12 months = from the 1st of the month 2 (or 11) months back to today, current month included; Year to date = from the latest `fy_start_month` 1st to today; default = This month.
+  - Packaging is COGS (subtype `cogs`), so gross margin is after packaging.
+  - P&L and cash flow exclude closing entries; the balance sheet shows unclosed earnings as "Current period earnings" in equity.
+  - AP aging buckets by days past due date; "current" includes bills not yet due.
+- Rejected: Rolling 30/90/365-day windows (harder to compare month to month).
+- Open: cash flow finds payables by the word "payable" in the account name; move to a subtype rule before boss-added liability accounts matter (carry forward to P2-T02).
+- Affects: 01-prd.md F-024.2, F-027, F-023.1; api/src/bookkeeper/reports/

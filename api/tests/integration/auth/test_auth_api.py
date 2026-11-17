@@ -193,7 +193,7 @@ def test_boss_google_sign_in_opens_session(
     me = client.get("/api/auth/me")
     assert me.status_code == 200
     assert me.json() == {"email": normalize_email(BOSS_EMAIL)}
-    assert client.get("/api/journal").json()["marker"] == BOOK_MARKER
+    assert client.get("/api/stub-journal").json()["marker"] == BOOK_MARKER
 
 
 def test_login_redirects_to_google_with_state(
@@ -233,7 +233,7 @@ def test_t029_cookie_reused_after_sign_out_returns_401(
     captured = client.cookies.get(SESSION_COOKIE)
     assert captured
     assert client.get("/api/auth/me").status_code == 200
-    assert client.get("/api/reports/trial-balance").status_code == 200
+    assert client.get("/api/stub-reports/trial-balance").status_code == 200
 
     assert client.post("/api/auth/logout").status_code == 204
 
@@ -253,16 +253,16 @@ def test_t029_sign_out_ends_current_client_session(
     client.post("/api/auth/logout")
 
     _assert_denied(client.get("/api/auth/me"))
-    _assert_denied(client.get("/api/journal"))
+    _assert_denied(client.get("/api/stub-journal"))
 
 
 def test_api_responses_are_no_store(make_app: AppFactory, make_client: ClientFactory) -> None:
     app = make_app(e2e_test_login=True)
     client = make_client(app)
 
-    assert client.get("/api/journal").headers["cache-control"] == "no-store"
+    assert client.get("/api/stub-journal").headers["cache-control"] == "no-store"
     assert client.post("/api/test/login").headers["cache-control"] == "no-store"
-    assert client.get("/api/journal").headers["cache-control"] == "no-store"
+    assert client.get("/api/stub-journal").headers["cache-control"] == "no-store"
     assert client.post("/api/auth/logout").headers["cache-control"] == "no-store"
 
 
