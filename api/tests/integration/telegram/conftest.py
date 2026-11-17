@@ -1,14 +1,12 @@
 """Fixtures for Telegram webhook tests. See planning/decisions.md#D-031."""
 
 from collections.abc import Iterator
-from typing import cast
 
 import httpx
 import pytest
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.support.factories import seeded_chart, supplier
-from tests.support.fakes import RecordingBot
 
 from bookkeeper.db.models import Supplier, User, UserRole, UserStatus
 from bookkeeper.telegram import handlers
@@ -21,18 +19,6 @@ DEACTIVATED_ID = 3003
 STRANGER_ID = 4004
 WEBHOOK_PATH = "/telegram/webhook"
 SECRET = "test_webhook_secret"
-
-
-def app_of(client: httpx.AsyncClient) -> FastAPI:
-    transport = getattr(client, "_transport")  # noqa: B009
-    return cast(FastAPI, transport.app)
-
-
-@pytest.fixture
-def tg_app(client: httpx.AsyncClient, bot: RecordingBot) -> FastAPI:
-    app = app_of(client)
-    app.state.bot = bot
-    return app
 
 
 @pytest.fixture

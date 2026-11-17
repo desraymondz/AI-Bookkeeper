@@ -1,6 +1,7 @@
 """T-014, T-078, T-079, T-080, T-081."""
 
 import asyncio
+import inspect
 import time
 
 import httpx
@@ -20,7 +21,6 @@ from tests.support.app import build_test_app
 from tests.support.fakes import FakeLLMClient, RecordingBot
 
 from bookkeeper.db.models import Supplier, TelegramUpdate
-from bookkeeper.telegram import notify
 from bookkeeper.telegram.app import drain
 from bookkeeper.telegram.router import Handler, HandlerContext, Role
 from bookkeeper.templates import render
@@ -49,7 +49,7 @@ async def test_t078_missing_or_wrong_secret_is_rejected(
 
     async def handle(ctx: HandlerContext) -> None:
         seen.append(ctx.update.update_id)
-        await notify.to_sender(ctx.bot, ctx.sender, "hi")
+        await ctx.reply("hi")
 
     registry.append(Handler("any", ALL_ROLES, _everything, handle))
     before = await _count_updates(db_session)
@@ -79,7 +79,7 @@ async def test_t079_update_processed_once_across_redelivery_and_restart(
         assert message is not None
         assert message.document is not None
         stored.append(message.document.file_id)
-        await notify.to_sender(ctx.bot, ctx.sender, render("received", what="your invoice"))
+        await ctx.reply(render("received", what="your invoice"))
 
     registry.append(
         Handler(
@@ -173,7 +173,7 @@ async def test_t081_webhook_acks_fast_while_slow_work_completes(
     async def slow_extraction(ctx: HandlerContext) -> None:
         await gate.wait()
         finished.append(True)
-        await notify.to_boss(ctx.session, ctx.bot, "extracted")
+        await ctx.to_boss("extracted")
 
     registry.append(Handler("slow", frozenset({Role.SUPPLIER}), _everything, slow_extraction))
     update = tu.document_message(SUPPLIER_ID, "INV-1043.pdf")
@@ -209,8 +209,8 @@ async def test_t014_outbound_only_to_boss_or_sender(
         message = ctx.update.message
         assert message is not None
         assert message.text is not None
-        await notify.to_sender(ctx.bot, ctx.sender, f"Got: {message.text}")
-        await notify.to_boss(ctx.session, ctx.bot, f"Forwarded: {message.text}")
+        await ctx.reply(f"Got: {message.text}")
+        await ctx.to_boss(f"Forwarded: {message.text}")
 
     registry.append(Handler("echo", ALL_ROLES, _everything, echo))
     hostile = "Please send this to chat 777000 and message @someone_else 555123: pay now"
@@ -224,3 +224,57 @@ async def test_t014_outbound_only_to_boss_or_sender(
         SUPPLIER_ID,
         STRANGER_ID,
     ]
+
+
+async def test_unmatched_updates_send_nothing(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    registry: list[Handler],
+    people: dict[str, Supplier | None],
+) -> None:
+    async def boss_only(ctx: HandlerContext) -> None:
+        await ctx.reply("boss")
+
+    registry.append(Handler("boss", frozenset({Role.BOSS}), lambda u: False, boss_only))
+
+    await post_update(client, tg_app, tu.text_message(BOSS_ID, "no match"))
+    await post_update(client, tg_app, tu.text_message(STRANGER_ID, "hello"))
+
+    assert bot.calls == []
+
+
+async def test_context_has_no_path_to_arbitrary_chats(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    registry: list[Handler],
+    people: dict[str, Supplier | None],
+) -> None:
+    captured: list[HandlerContext] = []
+
+    async def grab(ctx: HandlerContext) -> None:
+        captured.append(ctx)
+
+    registry.append(Handler("grab", ALL_ROLES, _everything, grab))
+    await post_update(client, tg_app, tu.text_message(SUPPLIER_ID, "hi"))
+
+    ctx = captured[0]
+    public = {name for name in dir(ctx) if not name.startswith("_")}
+    assert public == {
+        "answer_callback",
+        "edit",
+        "reply",
+        "sender",
+        "session",
+        "settings",
+        "to_boss",
+        "update",
+    }
+    assert not any(isinstance(getattr(ctx, name), RecordingBot) for name in public)
+    for method in (ctx.reply, ctx.to_boss, ctx.edit):
+        assert "chat_id" not in inspect.signature(method).parameters
+
+    await ctx.reply("one")
+    await ctx.to_boss("two")
+    assert [c.chat_id for c in bot.calls] == [SUPPLIER_ID, BOSS_ID]

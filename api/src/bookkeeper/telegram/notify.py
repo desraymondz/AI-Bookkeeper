@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookkeeper.db.models import User, UserRole, UserStatus
 from bookkeeper.telegram.app import BotLike
-from bookkeeper.telegram.router import Sender
+
+if TYPE_CHECKING:
+    from bookkeeper.telegram.router import Sender
 
 
 async def boss_chat_id(session: AsyncSession) -> int | None:
