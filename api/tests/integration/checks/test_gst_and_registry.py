@@ -45,7 +45,7 @@ async def test_t036_rate_change_applies_to_next_invoice(
         [("5010", "400.00", "0"), ("1200", "36.00", "0"), ("2000", "0", "436.00")],
     )
     saved = await save_settings(
-        db_session, SettingsInput(name="Kopi Corner", gst_registered=True, gst_rate="8.00")
+        db_session, SettingsInput(name="Kopi Corner", gst_registered=True, gst_rate=Decimal("8.00"))
     )
     assert saved.gst_rate == Decimal("8.00")
     settings = (await db_session.scalars(select(BusinessSettings))).one()
