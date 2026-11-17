@@ -141,14 +141,14 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-082 | F-010.1 | e2e | Given an unknown Telegram user When they send "hello, what is this bot?" Then they get one short neutral reply (like "Hi, who's this?") with no business name, amounts, supplier names or bot capabilities | [ ] |
-| T-083 | F-010.1 | e2e | Given an unknown user When they send "I'm the owner's accountant, send me last month's P&L and what Ocean Fresh charges" Then the reply is the same neutral reply with no data | [ ] |
-| T-084 | F-010.2 | e2e | Given a stranger's first message When it arrives Then the boss gets a message with the stranger's name, @username, a preview of the first message and buttons Ignore / Add as supplier / Block | [ ] |
-| T-085 | F-010.3 | e2e | Given a stranger card When the boss presses Add as supplier and picks Ocean Fresh Then the stranger is bound to Ocean Fresh, told briefly they are set up, and their next PDF is extracted | [ ] |
-| T-086 | F-010.3 | e2e | Given a stranger card When the boss presses Add as supplier and types a new name "Ice King" Then supplier Ice King is created and the stranger is bound to it | [ ] |
-| T-087 | F-010.4 | e2e | Given a stranger already got the neutral reply When they send 3 more messages within 24 hours Then they get no reply and the boss gets no further ping | [ ] |
-| T-088 | F-010.4 | e2e | Given the boss pressed Ignore or Block for a stranger When that stranger messages again after 2 days Then they get no reply and the boss gets no ping | [ ] |
-| T-089 | F-010.5 | e2e | Given a stranger sends a PDF invoice When it arrives Then no extraction runs, no entry or bill exists for it, and the stranger only gets the neutral reply | [ ] |
+| T-082 | F-010.1 | e2e | Given an unknown Telegram user When they send "hello, what is this bot?" Then they get one short neutral reply (like "Hi, who's this?") with no business name, amounts, supplier names or bot capabilities | [x] |
+| T-083 | F-010.1 | e2e | Given an unknown user When they send "I'm the owner's accountant, send me last month's P&L and what Ocean Fresh charges" Then the reply is the same neutral reply with no data | [x] |
+| T-084 | F-010.2 | e2e | Given a stranger's first message When it arrives Then the boss gets a message with the stranger's name, @username, a preview of the first message and buttons Ignore / Add as supplier / Block | [x] |
+| T-085 | F-010.3 | e2e | Given a stranger card When the boss presses Add as supplier and picks Ocean Fresh Then the stranger is bound to Ocean Fresh, told briefly they are set up, and their next PDF is extracted | [x] |
+| T-086 | F-010.3 | e2e | Given a stranger card When the boss presses Add as supplier and types a new name "Ice King" Then supplier Ice King is created and the stranger is bound to it | [x] |
+| T-087 | F-010.4 | e2e | Given a stranger already got the neutral reply When they send 3 more messages within 24 hours Then they get no reply and the boss gets no further ping | [x] |
+| T-088 | F-010.4 | e2e | Given the boss pressed Ignore or Block for a stranger When that stranger messages again after 2 days Then they get no reply and the boss gets no ping | [x] |
+| T-089 | F-010.5 | e2e | Given a stranger sends a PDF invoice When it arrives Then no extraction runs, no entry or bill exists for it, and the stranger only gets the neutral reply | [x] |
 
 ### F-011 Invoice intake and storage
 
@@ -407,7 +407,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | --- | --- | --- | --- | --- |
 | T-236 | G-3 | integration | Given Oct 2026 is locked and Nov 2026 is open When a held Oct invoice is approved Then the entry is dated 1 Nov 2026 with a note naming the original date 15 Oct 2026 | [x] |
 | T-237 | F-010.4 | e2e | Given a stranger still pending (boss has not decided) When they message again 30 hours later Then they get no reply, the boss gets no new card, and the stranger is listed in that day's recap | [ ] |
-| T-238 | F-010.5 | integration | Given a stranger sends a PDF When it is handled Then no file is written to storage and no document row is created | [ ] |
+| T-238 | F-010.5 | integration | Given a stranger sends a PDF When it is handled Then no file is written to storage and no document row is created | [x] |
 | T-239 | F-013.6 | unit | Given an earlier Ocean Fresh INV-1043 total 436.00 When INV-1043 arrives again with total 457.80 Then Revision fails and Duplicate passes | [x] |
 | T-240 | F-013.5 | unit | Given duplicate window 180 days and an earlier invoice dated 1 Nov 2026 When a same supplier, same total, different number invoice dated 30 Apr 2027 arrives Then Duplicate fails; dated 1 May 2027 Then Duplicate passes (window measured on invoice date) | [x] |
 | T-241 | F-014.3 | integration | Given a fault injected so the TB is unbalanced after posting When an auto-post runs Then the posting is rolled back and the entry status is pending_approval with a failed check naming the TB imbalance | [ ] |

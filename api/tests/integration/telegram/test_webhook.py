@@ -270,6 +270,7 @@ async def test_context_has_no_path_to_arbitrary_chats(
         "session",
         "settings",
         "to_boss",
+        "to_supplier",
         "update",
     }
     assert not any(isinstance(getattr(ctx, name), RecordingBot) for name in public)
