@@ -1,4 +1,5 @@
-"""See planning/01-prd.md#f-013-deterministic-checks and planning/build-plan.md (P2-T05)."""
+"""See planning/01-prd.md#f-013-deterministic-checks, planning/build-plan.md (P2-T05) and
+planning/decisions.md#D-034."""
 
 from dataclasses import dataclass
 from typing import Protocol
@@ -27,6 +28,7 @@ class CheckContext:
     document: Document
     proposed_entry: EntryDraft
     current_invoice_id: int | None = None
+    document_text: str | None = None
 
 
 class Check(Protocol):

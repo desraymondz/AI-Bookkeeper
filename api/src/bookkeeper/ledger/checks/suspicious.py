@@ -1,4 +1,4 @@
-"""See planning/01-prd.md#f-013-deterministic-checks (F-013.10) and planning/decisions.md#D-025."""
+"""See planning/01-prd.md#f-013-deterministic-checks and planning/decisions.md#D-025, #D-034."""
 
 import re
 from collections.abc import Iterator
@@ -29,6 +29,7 @@ def _texts(ctx: CheckContext) -> Iterator[str]:
     invoice = ctx.invoice
     yield from (value for value in (invoice.supplier_name, invoice.invoice_no) if value)
     yield from (line.description for line in invoice.lines if line.description)
+    yield from (value for value in (invoice.other_text, ctx.document_text) if value)
 
 
 def find_instruction(text: str) -> str | None:

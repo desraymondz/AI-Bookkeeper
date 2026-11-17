@@ -23,6 +23,7 @@ def _invoice(**changes: object) -> ExtractedInvoice:
         "subtotal": Decimal("400.00"),
         "gst": Decimal("36.00"),
         "total": Decimal("436.00"),
+        "other_text": None,
         "suspicious_content": False,
         "confidence": Decimal("0.9"),
     }

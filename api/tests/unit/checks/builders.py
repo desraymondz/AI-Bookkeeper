@@ -62,6 +62,7 @@ def make_invoice(**fields: Any) -> ExtractedInvoice:
         "currency": "SGD",
         "due_date": None,
         "terms_days": None,
+        "other_text": None,
         "suspicious_content": False,
         "confidence": Decimal("0.95"),
         "lines": lines,
@@ -103,6 +104,7 @@ def make_ctx(
     entry: EntryDraft | None = None,
     document: Document | None = None,
     current_invoice_id: int | None = None,
+    document_text: str | None = None,
 ) -> CheckContext:
     supplier = supplier or make_supplier()
     return CheckContext(
@@ -114,4 +116,5 @@ def make_ctx(
         document=document or make_document(),
         proposed_entry=entry or make_entry(),
         current_invoice_id=current_invoice_id,
+        document_text=document_text,
     )

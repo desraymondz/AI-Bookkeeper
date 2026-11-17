@@ -1,0 +1,7 @@
+{{ heading }}
+{{ supplier }} {{ invoice_no }}, total {{ total }}.
+{% for line in reasons %}- {{ line }}
+{% endfor %}{% if comparison %}{{ comparison }}
+{% endif %}Proposed entry dated {{ date }}:
+{% for line in entry_lines %}{{ line }}
+{% endfor %}

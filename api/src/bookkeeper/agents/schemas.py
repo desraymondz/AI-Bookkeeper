@@ -34,9 +34,24 @@ class ExtractedInvoice(BaseModel):
     subtotal: Money | None
     gst: Money | None
     total: Money | None
+    other_text: str | None
     suspicious_content: bool
     confidence: Annotated[Decimal, Field(ge=0, le=1, allow_inf_nan=False)]
 
     @property
     def missing_required(self) -> list[str]:
         return [name for name in ("invoice_no", "total") if getattr(self, name) in (None, "")]
+
+
+class InvoiceRevision(BaseModel):
+    """Corrections the boss asked for; null keeps the current value (F-015.3)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    invoice_no: str | None
+    invoice_date: dt.date | None
+    due_date: dt.date | None
+    subtotal: Money | None
+    gst: Money | None
+    total: Money | None
+    expense_account: str | None
