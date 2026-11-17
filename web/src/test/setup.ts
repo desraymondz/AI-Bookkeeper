@@ -5,6 +5,11 @@ import { server } from './server'
 
 beforeAll(() => {
   window.scrollTo = () => undefined
+  window.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
   server.listen({ onUnhandledFrame: 'error' })
 })
 afterEach(() => {

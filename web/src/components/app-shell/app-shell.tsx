@@ -1,17 +1,11 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
+import { useMe } from '@/features/auth/api'
+import { useSignOut } from '@/features/auth/use-sign-out'
 import { AppHeader } from './app-header'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
-
-  // TODO(P1-T07): call the sign-out endpoint from P1-T04 before clearing. See planning/01-prd.md#F-001
-  const signOut = () => {
-    queryClient.clear()
-    void navigate({ to: '/sign-in' })
-  }
+  const signOut = useSignOut()
+  const { data: me } = useMe()
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -21,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <AppHeader onSignOut={signOut} />
+      <AppHeader email={me?.email} onSignOut={() => void signOut()} />
       <main id="main" tabIndex={-1} className="flex-1">
         {children}
       </main>
