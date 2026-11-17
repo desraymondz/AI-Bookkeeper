@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. B2 running in worktrees: P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config. Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. B2: P1-T04 and P1-T05 merged; P1-T03 ledger being finished by a Sonnet builder (Opus builder hit usage limit; WIP committed on task/P1-T03). Subagents now run on Sonnet 5.5 per owner (2026-11-18). Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
 
 | Doc | Status |
 | --- | --- |
