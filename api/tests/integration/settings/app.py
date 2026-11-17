@@ -5,20 +5,25 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bookkeeper.auth.deps import BossSession, require_boss
 from bookkeeper.config import load_settings
 from bookkeeper.main import create_app
-from bookkeeper.web_api import accounts, config, get_db, settings
+from bookkeeper.web_api import get_db
 
 
-def build_app(db_session: AsyncSession) -> FastAPI:
-    app = create_app(load_settings(_env_file=None))
-    for module in (settings, accounts, config):
-        app.include_router(module.router)
+def build_app(db_session: AsyncSession, *, signed_in: bool = True) -> FastAPI:
+    resolved = load_settings(_env_file=None)
+    app = create_app(resolved)
 
     async def _db() -> AsyncIterator[AsyncSession]:
         yield db_session
 
+    async def _boss() -> BossSession:
+        return BossSession(session_id="test-session", email=resolved.boss_email)
+
     app.dependency_overrides[get_db] = _db
+    if signed_in:
+        app.dependency_overrides[require_boss] = _boss
     return app
 
 

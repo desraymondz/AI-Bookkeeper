@@ -39,11 +39,11 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | --- | --- | --- | --- | --- |
 | T-023 | F-001.1 | browser | Given `BOSS_EMAIL` is the boss's Google account When the boss clicks "Continue with Google" on `/sign-in` and completes Google sign-in Then they land on `/accounting/journal?range=this-month` | [ ] |
 | T-024 | F-001.1 | browser | Given a Google account that is not `BOSS_EMAIL` When it completes sign-in Then `/access-denied` shows "Access denied" with no business name and no book data | [ ] |
-| T-025 | F-001.1 | integration | Given a session attempt from a non-boss Google account When it calls any book API route Then it gets 401 and no data | [ ] |
-| T-026 | F-001.2 | integration | Given no session When every API route except sign-in is called (journal, ledger, reports, settings, uploaded file URLs) Then each returns 401 with no book data in the body | [ ] |
+| T-025 | F-001.1 | integration | Given a session attempt from a non-boss Google account When it calls any book API route Then it gets 401 and no data | [x] |
+| T-026 | F-001.2 | integration | Given no session When every API route except sign-in is called (journal, ledger, reports, settings, uploaded file URLs) Then each returns 401 with no book data in the body | [x] |
 | T-027 | F-001.2 | browser | Given no session When `/accounting/journal`, `/analytics` or `/settings/business` is opened Then the browser is redirected to `/sign-in` | [ ] |
 | T-028 | F-001.3 | browser | Given the boss viewed `/accounting/journal` When they choose Sign out and press Back Then no book data is shown and they end up on `/sign-in` | [ ] |
-| T-029 | F-001.3 | integration | Given a session cookie captured before sign out When it is reused on any API route after sign out Then it gets 401 | [ ] |
+| T-029 | F-001.3 | integration | Given a session cookie captured before sign out When it is reused on any API route after sign out Then it gets 401 | [x] |
 
 ### F-002 First-run setup and business settings
 
