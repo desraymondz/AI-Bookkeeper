@@ -27,6 +27,9 @@ export const handlers = [
   ),
   http.get('*/api/auth/me', () => HttpResponse.json({ email: TEST_EMAIL })),
   http.post('*/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
+  http.get('*/api/links/boss', () =>
+    HttpResponse.json({ connected: false, username: null, display_name: null, linked_at: null }),
+  ),
   http.get('*/api/settings', () =>
     HttpResponse.json({ configured: true, settings: TEST_SETTINGS, defaults: TEST_DEFAULTS }),
   ),
