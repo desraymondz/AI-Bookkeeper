@@ -239,7 +239,7 @@ Implements `LLMClient` from P2-T00 with google-genai; `ExtractedInvoice` schema 
 ### P2-T08  Invoice LangGraph and approvals
 Feature: F-014, F-015, G-4, G-7     Tests: T-010, T-011 (invoice path), T-018, T-019, T-126, T-127, T-129..T-142, T-241
 Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/invoice_pipeline.py, api/src/bookkeeper/telegram/handlers/approvals.py, templates/invoice*, tests
-Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
+Sets CheckContext.current_invoice_id when an Invoice row for the document already exists (P2-T05 duplicate rule excludes it). Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
 
 ### P2-T09  Web suppliers, users, Connect Telegram
 Feature: F-006..F-008 (web)     Tests: T-057, T-063, T-065..T-067, T-071..T-074
