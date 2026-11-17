@@ -97,13 +97,13 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
 | T-057 | F-006.1 | browser | Given `/settings/telegram` shows "Not connected" When the boss clicks "Connect Telegram" Then a `t.me/<bot>?start=<token>` link in a read-only input, Copy, "Open in Telegram", a QR code and an expiry 24 hours ahead are shown | [ ] |
-| T-058 | F-006.1 | integration | Given a boss token created at 18 Nov 2026 21:00 When checked Then it expires at 19 Nov 2026 21:00 and is single-use | [ ] |
-| T-059 | F-006.2 | e2e | Given a fresh boss token When a Telegram user opens the link and presses Start Then that user id is bound to the boss, the bot confirms, and within 5 s `/settings/telegram` shows "Connected as @username" | [ ] |
-| T-060 | F-006.3 | e2e | Given a boss token created 25 hours ago When it is used with Start Then the bot gives a neutral reply and nothing is bound | [ ] |
-| T-061 | F-006.3 | e2e | Given a boss token already used When a second Telegram user sends Start with it Then the bot gives a neutral reply and the boss binding is unchanged | [ ] |
-| T-062 | F-006.3 | e2e | Given a random unknown token When sent with Start Then the bot gives a neutral reply that reveals no business data and nothing is bound | [ ] |
+| T-058 | F-006.1 | integration | Given a boss token created at 18 Nov 2026 21:00 When checked Then it expires at 19 Nov 2026 21:00 and is single-use | [x] |
+| T-059 | F-006.2 | e2e | Given a fresh boss token When a Telegram user opens the link and presses Start Then that user id is bound to the boss, the bot confirms, and within 5 s `/settings/telegram` shows "Connected as @username" | [x] |
+| T-060 | F-006.3 | e2e | Given a boss token created 25 hours ago When it is used with Start Then the bot gives a neutral reply and nothing is bound | [x] |
+| T-061 | F-006.3 | e2e | Given a boss token already used When a second Telegram user sends Start with it Then the bot gives a neutral reply and the boss binding is unchanged | [x] |
+| T-062 | F-006.3 | e2e | Given a random unknown token When sent with Start Then the bot gives a neutral reply that reveals no business data and nothing is bound | [x] |
 | T-063 | F-006.4 | browser | Given the boss is connected When they click "Reconnect" Then a dialog warns "Your current Telegram account will be disconnected." before a new token is made | [ ] |
-| T-064 | F-006.4 | e2e | Given the boss reconnects with Telegram account B When old account A then messages the bot Then A gets the stranger reply, B is the boss, and A's button presses do nothing | [ ] |
+| T-064 | F-006.4 | e2e | Given the boss reconnects with Telegram account B When old account A then messages the bot Then A gets the stranger reply, B is the boss, and A's button presses do nothing | [x] |
 
 ### F-007 Suppliers and invite links
 
@@ -112,9 +112,9 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-065 | F-007.1 | browser | Given `/settings/suppliers` When the boss adds "Ocean Fresh" with default account COGS Seafood, UEN 201912345K, terms 30, hint @oceanfresh Then the table shows the row with Status Active | [ ] |
 | T-066 | F-007.1 | browser | Given the Add supplier dialog When name or default account is empty Then an inline error shows and no supplier is added; UEN and Telegram hint may be empty | [ ] |
 | T-067 | F-007.2 | browser | Given supplier Ocean Fresh When the boss clicks "Create invite" on 18 Nov 2026 21:04 Then a dialog shows the link, "Expires 25 Nov 2026, 21:04", a single-use note, and "Copy link" shows toast "Link copied" | [ ] |
-| T-068 | F-007.3 | e2e | Given a valid Ocean Fresh invite When a supplier opens it and presses Start Then their Telegram id is bound to Ocean Fresh, they get a brief greeting, and the boss is told | [ ] |
-| T-069 | F-007.3 | e2e | Given an invite created 8 days ago, or one already used When someone presses Start with it Then they get a neutral reply and are not bound | [ ] |
-| T-070 | F-007.4 | e2e | Given Ocean Fresh is deactivated on `/settings/suppliers` When its bound user sends an invoice PDF Then it is treated as a stranger: neutral reply, boss stranger card, no extraction | [ ] |
+| T-068 | F-007.3 | e2e | Given a valid Ocean Fresh invite When a supplier opens it and presses Start Then their Telegram id is bound to Ocean Fresh, they get a brief greeting, and the boss is told | [x] |
+| T-069 | F-007.3 | e2e | Given an invite created 8 days ago, or one already used When someone presses Start with it Then they get a neutral reply and are not bound | [x] |
+| T-070 | F-007.4 | e2e | Given Ocean Fresh is deactivated on `/settings/suppliers` When its bound user sends an invoice PDF Then it is treated as a stranger: neutral reply, boss stranger card, no extraction | [x] |
 
 ### F-008 Users and roles
 
@@ -124,9 +124,9 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-072 | F-008.2 | browser | Given a supplier user When the boss uses "Change linked supplier" to pick Dairy Best Then the row shows Dairy Best and their next invoice is checked against Dairy Best | [ ] |
 | T-073 | F-008.2 | browser | Given a supplier user When the boss confirms "Revoke link" (or Deactivate) Then the row shows the new status and that user's next message gets the stranger reply | [ ] |
 | T-074 | F-008.2 | browser | Given `/settings/users` When the boss row's menu is opened Then it has no destructive actions and the note "There is exactly one boss." is shown | [ ] |
-| T-075 | F-008.2 | integration | Given the users API When asked to deactivate the boss, add a second boss, or change a supplier user's role to boss Then each request is refused and there is still exactly one active boss | [ ] |
-| T-076 | F-008.3 | e2e | Given an Ocean Fresh supplier user When they ask "how much do you owe us?" or "what does Dairy Best charge you?" Then the reply contains no amounts, balances or other supplier names | [ ] |
-| T-077 | F-008.3 | integration | Given a supplier sender and a model output that requests a ledger read, a report or a message to another chat When processed Then each tool call is refused before it runs and the refusal is audit logged | [ ] |
+| T-075 | F-008.2 | integration | Given the users API When asked to deactivate the boss, add a second boss, or change a supplier user's role to boss Then each request is refused and there is still exactly one active boss | [x] |
+| T-076 | F-008.3 | e2e | Given an Ocean Fresh supplier user When they ask "how much do you owe us?" or "what does Dairy Best charge you?" Then the reply contains no amounts, balances or other supplier names | [x] |
+| T-077 | F-008.3 | integration | Given a supplier sender and a model output that requests a ledger read, a report or a message to another chat When processed Then each tool call is refused before it runs and the refusal is audit logged | [x] |
 
 ### F-009 Message intake and routing
 
