@@ -42,6 +42,7 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B4 | P2-T05 checks F-013.1..5 | Reconciled to T07 schema; verifier FAIL (sha rule matched own document, tautological T-114); fix round added current_invoice_id; re-verify PASS; merged; T-036, T-105..T-116, T-240 ticked; T-125 ticks with P2-T06; preview api 303 web 26 |
 | 2026-11-18 | B5 | P2-T04 invoice intake and storage | Verifier PASS (scoped + shared infra), merged; T-090..T-096, T-245 ticked; D-033 re-send reuses Document row; HANDLER_MODULES list in routes.py loads handler modules |
 | 2026-11-18 | B4 | P2-T06 checks F-013.6..10 | Re-integrated on T05/T07; verifier PASS; merged; T-117..T-125, T-239 ticked; T-233..T-235 held for D-034 (document text gap, fixed in P2-T08). B4 complete. |
+| 2026-11-18 | B5 | P2-T02 linking, suppliers, users API | Verifier PASS (scoped + shared infra), merged; migration 0003 trade_payable on account 2000 (D-030 closed); T-058..T-062, T-064, T-068..T-070, T-075..T-077, T-202 ticked; agents/tool_gate.py for P2-T08; preview api 371 web 26 |
 
 ## P1 phase summary
 - Built: API and web scaffolds, ledger posting service and periods, Google auth and sessions, settings and chart of accounts, reports service, web sign-in/setup/settings/accounts, demo cafe seed.
