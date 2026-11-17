@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator, Coroutine
 from contextlib import asynccontextmanager
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +39,7 @@ def get_bot(app: FastAPI) -> BotLike:
     if existing is not None:
         return existing
     settings: Settings = app.state.settings
-    created = Bot(settings.telegram_bot_token)
+    created = cast(BotLike, Bot(settings.telegram_bot_token))
     app.state.bot = created
     return created
 
