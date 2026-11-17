@@ -28,7 +28,7 @@ Setup answers: builder = Opus, verifier = Opus, browser tests = Playwright, real
 | P1-T02 | Web scaffold: Vite+React+TS7 (fallback 6.0.3 per D-022), Tailwind 4, shadcn, Phosphor, Montserrat, design tokens light/dark (02-design.md), TanStack Router/Query, Biome, Vitest, Playwright config, app shell + header, empty states | F-029 | T-208 | `web/` | none |
 | P1-T03 | Ledger posting service, periods, lock-date move, reversals | G-1, G-2, G-3 | T-001..T-009, T-236 | `ledger/post.py`, `ledger/periods.py`, tests | T01 |
 | P1-T04 | Auth: Google OIDC (Authlib), `BOSS_EMAIL` allowlist, server sessions, sign-out, no-store, test-login | F-001 (api) | T-025, T-026, T-029 | `auth/` | T01 |
-| P1-T05 | Settings + chart of accounts API, default CoA seed | F-002, F-003 (api) | T-017, T-035, T-036, T-038, T-043, T-044 | `web_api/settings.py`, `web_api/accounts.py`, `ledger/coa.py` | T01 |
+| P1-T05 | Settings + chart of accounts API, default CoA seed, `/api/config` | F-002, F-003 (api) | T-017, T-035, T-036 (first half), T-038, T-043 | `web_api/settings.py`, `web_api/accounts.py`, `ledger/coa.py` | T01 |
 | P1-T06 | Reports service: TB, ATB, GL, P&L, BS, cash flow (indirect), AP aging + read API | G-3, F-025..F-027 (api) | T-009, T-202 | `reports/`, `web_api/reports.py`, `web_api/ledger.py` | T03 |
 | P1-T07 | Web: sign-in, access denied, auth guard, first-run setup, settings page, accounts page | F-001..F-003 (web) | T-023, T-024, T-027, T-028, T-030..T-034, T-037, T-039..T-042 | `web/src/features/auth,settings,accounts` + routes | T02, T04, T05 |
 | P1-T08 | Seed demo cafe `bk seed` (settings, CoA, 3 suppliers, opening balances, 3 months invoices/sales/payments, 1 asset) | F-030.1 | T-209 | `eval/seed/`, `cli` seed cmd | T03, T05 |
@@ -42,9 +42,9 @@ Batches: **B1** T01 ‖ T02 · **B2** T03 ‖ T04 ‖ T05 · **B3** T06 ‖ T07 
 | P2-T02 | Link tokens + boss and supplier linking via `/start`, suppliers and users API | F-006, F-007, F-008 (api/bot) | T-058..T-062, T-064, T-068..T-070, T-075..T-077 | P2-T01 |
 | P2-T03 | Stranger handling: template reply, boss card, Ignore/Add/Block, 24h quiet | F-010 | T-082..T-089, T-237, T-238 | P2-T01 |
 | P2-T04 | Invoice intake: type/size check, HEIC preview, storage by date/supplier, sha256 dedupe, ack | F-011 | T-090..T-096, T-245 | P2-T01 |
-| P2-T05 | Checks F-013.1..F-013.5 (one module each) | F-013 | T-105..T-116, T-125, T-240 | P1 |
+| P2-T05 | Checks F-013.1..F-013.5 (one module each) | F-013 | T-105..T-116, T-125, T-240, T-036 (second half) | P1 |
 | P2-T06 | Checks F-013.6..F-013.10 incl. suspicious-content scan | F-013 | T-117..T-124, T-233..T-235, T-239 | P1 |
-| P2-T07 | Gemini wrapper (model per env task, retries, audit), extraction schema, propose entry | F-012, G-7 | T-098, T-100..T-104 | P1 |
+| P2-T07 | Gemini wrapper (model per env task, retries, audit), extraction schema, propose entry | F-012, G-7 | T-098, T-100..T-104, T-044 | P1 |
 | P2-T08 | Invoice LangGraph: checks runner, auto-post + bill + TB guard + FYI, approval card, Approve/Edit/Reject, duplicate and revision cards, boss-only buttons, Postgres checkpointer | F-014, F-015, G-4, G-7 | T-010, T-011, T-018, T-019, T-126, T-127, T-129..T-142, T-241 | T04, T05, T06, T07 |
 | P2-T09 | Web: suppliers page + invites, users page, Connect Telegram link + QR | F-006..F-008 (web) | T-057, T-063, T-065..T-067, T-071..T-074 | P2-T02 |
 
@@ -143,7 +143,7 @@ Verify: api command, pytest -k auth
 UI change: no
 
 ### P1-T05  Settings and chart of accounts API
-Feature: F-002, F-003 (api), plus GET /api/config per D-027     Tests: T-017, T-035, T-036, T-038, T-043, T-044
+Feature: F-002, F-003 (api), plus GET /api/config per D-027     Tests: T-017, T-035, T-036 (posted entry unchanged; the 8% check half ticks in P2-T05), T-038, T-043
 Owns files: api/src/bookkeeper/web_api/{settings,accounts,config}.py, api/src/bookkeeper/ledger/coa.py, tests
 Reads: 01-prd.md#F-002, #F-003, decisions.md#D-004
 Depends on: P1-T01
@@ -174,3 +174,5 @@ UI change: no
 ## Verifier notes carried forward
 - P1-T03: request a migration changing `journal_lines` and `check_results` FKs from `ondelete=CASCADE` to `RESTRICT` (DB-level guard for G-2). Orchestrator applies it to models.py and migrations.
 - P4-T01: depreciation entries need an `asset_id` link on journal entries for per-asset accumulated depreciation (F-021.3); request schema change.
+- Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
+- T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
