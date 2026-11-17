@@ -248,3 +248,10 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
   - Builder and verifier rules live in `planning/builder-rules.md` and `planning/verifier-rules.md`; prompts point to them instead of repeating them.
 - Rejected: Dropping the per-task verifier (loses the blind review).
 - Affects: planning/build-plan.md, Makefile, planning/builder-rules.md, planning/verifier-rules.md
+
+## D-033 Re-sent identical file reuses the Document row (T-096 reading)
+- Date: 2026-11-18
+- Context: T-096 says the new document record links to the earlier one; PRD F-011.4 says a re-sent file is linked to the earlier document and not stored twice. `documents.sha256` is unique, so a second row with the same hash cannot exist.
+- Decision: A re-sent identical file reuses the existing Document row (one row, one file on disk); the supplier still gets the ack and `invoice_pipeline.start(document_id)` runs again. T-096 counts as passed when exactly one row and one stored file exist and the pipeline is started with the same document id. P2-T08 handles a repeat start on the same document (F-013.5 duplicate rule with `CheckContext.current_invoice_id`) and records the re-send in the audit log with its sender.
+- Rejected: A nullable `duplicate_of_id` column with a second Document row (needs the sha256 uniqueness dropped; no PRD benefit).
+- Affects: planning/04-test-spec.md T-096 (reading only), planning/build-plan.md P2-T08
