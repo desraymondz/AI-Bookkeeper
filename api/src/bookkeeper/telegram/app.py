@@ -33,6 +33,8 @@ class BotLike(Protocol):
         self, callback_query_id: str, text: str | None = None
     ) -> Any: ...
 
+    async def get_file(self, file_id: str) -> Any: ...
+
 
 def get_bot(app: FastAPI) -> BotLike:
     existing: BotLike | None = getattr(app.state, "bot", None)
