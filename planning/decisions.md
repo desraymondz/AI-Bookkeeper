@@ -191,3 +191,10 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Rejected: Feature-by-feature vertical slices from the start (would race on the schema and shared files).
 - Why: Fewer merge conflicts, earliest possible trust in the ledger.
 - Affects: planning/build-plan.md
+
+## D-027 Montserrat self-hosted; /api/config contract
+- Date: 2026-11-18
+- Context: 02-design.md section 4 links Google Fonts; 03-tech-stack.md section 8 picks @fontsource-variable/montserrat. The web shell needs the bot username and business name before sign-in data loads.
+- Decision: Self-host Montserrat via @fontsource-variable (tech stack wins; no external font request). API exposes `GET /api/config` returning `{ bot_username, business_name }` (both nullable), built in P1-T05.
+- Rejected: Google Fonts CDN; `VITE_` env var for the bot username (would need a rebuild per deployment).
+- Affects: 02-design.md section 4, 03-tech-stack.md section 8, planning/build-plan.md P1-T05

@@ -28,3 +28,4 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | Date | Batch | Tasks | Result |
 | --- | --- | --- | --- |
 | 2026-11-18 | Setup | preview branch, build plan, D-026, push-to-main denies | Done |
+| 2026-11-18 | B1 | P1-T02 web scaffold | Verifier PASS, merged; T-208 ticked; evidence in planning/evidence/P1-T02/ |

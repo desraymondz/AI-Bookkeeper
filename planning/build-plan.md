@@ -143,8 +143,8 @@ Verify: api command, pytest -k auth
 UI change: no
 
 ### P1-T05  Settings and chart of accounts API
-Feature: F-002, F-003 (api)     Tests: T-017, T-035, T-036, T-038, T-043, T-044
-Owns files: api/src/bookkeeper/web_api/{settings,accounts}.py, api/src/bookkeeper/ledger/coa.py, tests
+Feature: F-002, F-003 (api), plus GET /api/config per D-027     Tests: T-017, T-035, T-036, T-038, T-043, T-044
+Owns files: api/src/bookkeeper/web_api/{settings,accounts,config}.py, api/src/bookkeeper/ledger/coa.py, tests
 Reads: 01-prd.md#F-002, #F-003, decisions.md#D-004
 Depends on: P1-T01
 Verify: api command

@@ -365,7 +365,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-208 | F-029.1 | browser | Given any signed-in page When the header "Open in Telegram" button is clicked Then `https://t.me/<bot username>` opens in a new tab; at 375px width the button is inside the nav sheet | [ ] |
+| T-208 | F-029.1 | browser | Given any signed-in page When the header "Open in Telegram" button is clicked Then `https://t.me/<bot username>` opens in a new tab; at 375px width the button is inside the nav sheet | [x] |
 
 ### F-030 Seed data and eval harness
 
