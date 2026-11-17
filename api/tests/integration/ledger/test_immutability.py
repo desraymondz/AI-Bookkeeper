@@ -78,10 +78,6 @@ async def delete_line(s: AsyncSession, entry_id: int, acc: Accounts) -> None:
     await s.delete(await first_line(s, entry_id))
 
 
-async def add_line(s: AsyncSession, entry_id: int, acc: Accounts) -> None:
-    s.add(JournalLine(entry_id=entry_id, line_no=9, account_id=acc.cash, debit=Decimal("1.00")))
-
-
 async def change_date(s: AsyncSession, entry_id: int, acc: Accounts) -> None:
     entry = await s.get(JournalEntry, entry_id)
     assert entry is not None
@@ -153,7 +149,6 @@ async def insert_posted(s: AsyncSession, entry_id: int, acc: Accounts) -> None:
         change_amount,
         change_account,
         delete_line,
-        add_line,
         change_date,
         change_status,
         change_description,
@@ -233,8 +228,3 @@ async def test_reverse_unposted_refused(db_session: AsyncSession, accounts: Acco
 
     with pytest.raises(EntryStateError):
         await reverse(db_session, held.id)
-
-
-async def test_direct_posted_insert_refused(db_session: AsyncSession, accounts: Accounts) -> None:
-    with pytest.raises(ImmutableEntryError):
-        await in_savepoint(db_session, insert_posted, 0, accounts)

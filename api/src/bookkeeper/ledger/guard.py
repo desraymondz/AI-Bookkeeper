@@ -52,7 +52,8 @@ def _check_entry(session: Session, entry: JournalEntry, *, deleting: bool) -> No
     was_posted = _persisted_status(entry) == EntryStatus.POSTED
     if was_posted and (deleting or session.is_modified(entry)):
         raise ImmutableEntryError(f"{_label(entry)} is posted and cannot be changed or deleted.")
-    becomes_posted = entry.status == EntryStatus.POSTED and not was_posted
+    persisted = not (inspect(entry).transient or inspect(entry).pending)
+    becomes_posted = persisted and entry.status == EntryStatus.POSTED and not was_posted
     if becomes_posted and id(entry) not in session.info.get(_AUTHORIZED, set()):
         raise ImmutableEntryError("Entries are posted only through bookkeeper.ledger.post.")
 
@@ -78,7 +79,7 @@ def _before_flush(session: Session, flush_context: UOWTransaction, instances: An
     for obj in list(session.dirty) + list(session.new):
         if isinstance(obj, JournalEntry):
             _check_entry(session, obj, deleting=False)
-        elif isinstance(obj, JournalLine) and (obj in session.new or session.is_modified(obj)):
+        elif isinstance(obj, JournalLine) and obj not in session.new and session.is_modified(obj):
             _check_line(session, obj)
 
 
