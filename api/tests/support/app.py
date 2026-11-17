@@ -1,6 +1,7 @@
 """See planning/decisions.md#D-031."""
 
 from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING, cast
 
 import httpx
 import pytest
@@ -11,6 +12,9 @@ from bookkeeper.auth.deps import BossSession, require_boss
 from bookkeeper.config import load_settings
 from bookkeeper.main import create_app
 from bookkeeper.web_api import get_db
+
+if TYPE_CHECKING:
+    from tests.support.fakes import RecordingBot
 
 BASE_URL = "http://test"
 
@@ -47,3 +51,15 @@ async def client(db_session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
 async def anon_client(db_session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
     async for c in _client(build_test_app(db_session, signed_in=False)):
         yield c
+
+
+def app_of(client: httpx.AsyncClient) -> FastAPI:
+    transport = getattr(client, "_transport")  # noqa: B009
+    return cast(FastAPI, transport.app)
+
+
+@pytest.fixture
+def tg_app(client: httpx.AsyncClient, bot: RecordingBot) -> FastAPI:
+    app = app_of(client)
+    app.state.bot = bot
+    return app

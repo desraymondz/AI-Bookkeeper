@@ -37,6 +37,9 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B3 | P1-T08 demo cafe seed | FAIL (comment policy, self-ticked spec) then fix round, re-verify PASS, merged; T-209 ticked |
 | 2026-11-18 | B3 | P1-T06 reports service | Verifier PASS, merged; T-009, T-202 ticked; reports/ledger routers wired; auth stubs moved to /api/stub-*; D-030 |
 | 2026-11-18 | P2 | P2-T00 integration harness | Builder cut off uncommitted; Sonnet builder finished; verifier PASS (api 241, web 26, e2e 24), merged; make hooks and make sync run in main checkout |
+| 2026-11-18 | B4 | P2-T07 Gemini client, extraction, proposal | Verifier PASS (scoped, D-032), merged; T-044, T-098, T-101..T-104 ticked; T-100 ticks with P2-T08 (boss card); preview verify green api 254 web 26 |
+| 2026-11-18 | B4 | P2-T01 webhook, routing, notify, templates | Verifier PASS with G-5 gap (raw bot on HandlerContext); fix round added notify facade and tg_app fixture in tests/support; orchestrator checked fix (35 tests, no bypass grep), merged; lifespan drains telegram tasks; T-014, T-078..T-081 ticked; preview api 267 web 26 |
+| 2026-11-18 | B4 | P2-T05 checks F-013.1..5 | Reconciled to T07 schema; verifier FAIL (sha rule matched own document, tautological T-114); fix round added current_invoice_id; re-verify PASS; merged; T-036, T-105..T-116, T-240 ticked; T-125 ticks with P2-T06; preview api 303 web 26 |
 
 ## P1 phase summary
 - Built: API and web scaffolds, ledger posting service and periods, Google auth and sessions, settings and chart of accounts, reports service, web sign-in/setup/settings/accounts, demo cafe seed.

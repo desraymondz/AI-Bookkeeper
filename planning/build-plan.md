@@ -178,6 +178,7 @@ UI change: no
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
 - P2-T02: switch cash-flow payables detection from account name to a subtype (D-030 open item).
+- Open (flake, 2026-11-18): web/src/features/auth/auth.test.tsx T-024 fails under parallel load (config mock called once, likely a request leaking from the previous test). Passes alone 5/5. Fix in P2-T09 (first web card): scope the mock to the test render or await idle queries before asserting.
 - Open (P2-T00 verifier): web/e2e/support/seed.ts `seedPostingsFor` still raw-inserts journal rows (moved unchanged from db.ts; D-031 says no raw journal inserts). New e2e must not use it; replace with a ledger-service path (e.g. a `bk` seed command) by P5-T01.
 
 ## P2 onward: integration rules (D-031)
@@ -238,7 +239,7 @@ Implements `LLMClient` from P2-T00 with google-genai; `ExtractedInvoice` schema 
 ### P2-T08  Invoice LangGraph and approvals
 Feature: F-014, F-015, G-4, G-7     Tests: T-010, T-011 (invoice path), T-018, T-019, T-126, T-127, T-129..T-142, T-241
 Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/invoice_pipeline.py, api/src/bookkeeper/telegram/handlers/approvals.py, templates/invoice*, tests
-Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
+Sets CheckContext.current_invoice_id when an Invoice row for the document already exists (P2-T05 duplicate rule excludes it). Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
 
 ### P2-T09  Web suppliers, users, Connect Telegram
 Feature: F-006..F-008 (web)     Tests: T-057, T-063, T-065..T-067, T-071..T-074

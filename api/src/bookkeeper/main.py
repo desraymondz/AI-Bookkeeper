@@ -8,6 +8,7 @@ from bookkeeper.auth.wiring import install_auth
 from bookkeeper.config import ConfigError, Settings, get_settings
 from bookkeeper.db.session import create_engine, create_sessionmaker
 from bookkeeper.routes import register_routes
+from bookkeeper.telegram.app import drain
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -22,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
+            await drain(app)
             await engine.dispose()
 
     app = FastAPI(title="AI Bookkeeper", lifespan=lifespan)
