@@ -183,3 +183,44 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Rejected: Changing the eval so the trap passes when the injected text has no effect.
 - Why: Defence in depth; an injected document should always be seen by the boss.
 - Affects: 01-prd.md F-013.10, 04-test-spec.md T-222, T-233 to T-235
+
+## D-026 Build order
+- Date: 2026-11-18
+- Context: des-build needs a dependency-safe order for parallel builders.
+- Decision: Six phases (foundation, Telegram and invoice pipeline, boss operations, month end, web books, eval and self-host) per `planning/build-plan.md`. Scaffolds first because they create all shared files; ledger and reports next because every write path (G-1) and every number shown by bot, web and PDF depends on them; checks and extractor are independent leaf modules built in parallel before the invoice graph wires them; web books follow the reports service so pages only render, never compute. Builder and verifier both run on Opus; browser checks use the project's Playwright with the test-only login.
+- Rejected: Feature-by-feature vertical slices from the start (would race on the schema and shared files).
+- Why: Fewer merge conflicts, earliest possible trust in the ledger.
+- Affects: planning/build-plan.md
+
+## D-027 Montserrat self-hosted; /api/config contract
+- Date: 2026-11-18
+- Context: 02-design.md section 4 links Google Fonts; 03-tech-stack.md section 8 picks @fontsource-variable/montserrat. The web shell needs the bot username and business name before sign-in data loads.
+- Decision: Self-host Montserrat via @fontsource-variable (tech stack wins; no external font request). API exposes `GET /api/config` returning `{ bot_username, business_name }` (both nullable), built in P1-T05.
+- Rejected: Google Fonts CDN; `VITE_` env var for the bot username (would need a rebuild per deployment).
+- Affects: 02-design.md section 4, 03-tech-stack.md section 8, planning/build-plan.md P1-T05
+
+## D-028 tenacity pinned to 9.1.x
+- Date: 2026-11-18
+- Context: 03-tech-stack.md section 3.2 pins tenacity 9.2.1, but google-genai 3.4.0 requires tenacity<9.2.0.
+- Decision: Pin `tenacity~=9.1.4` until google-genai relaxes the bound.
+- Rejected: Downgrading google-genai.
+- Affects: 03-tech-stack.md section 3.2, api/pyproject.toml
+
+## D-029 Price-change rule options
+- Date: 2026-11-18
+- Context: D-007 makes the price rule configurable but names only the default. The settings builder added a second value.
+- Decision: `price_rule` accepts `any_change` (default, D-007) and `increase_only` (only unit price increases go to the boss). F-013.7 applies whichever is set.
+- Rejected: A percentage threshold (left for later if the default proves noisy).
+- Affects: 01-prd.md F-002.2, F-013.7; api/src/bookkeeper/settings_service.py
+
+## D-030 Report definitions not fixed by the PRD
+- Date: 2026-11-18
+- Context: P1-T06 had to choose meanings the PRD leaves open; the verifier asked for them to be recorded.
+- Decision:
+  - Date presets (F-024.2), in business timezone: This month = 1st to today; Last month = whole previous month; Last 3 months and Last 12 months = from the 1st of the month 2 (or 11) months back to today, current month included; Year to date = from the latest `fy_start_month` 1st to today; default = This month.
+  - Packaging is COGS (subtype `cogs`), so gross margin is after packaging.
+  - P&L and cash flow exclude closing entries; the balance sheet shows unclosed earnings as "Current period earnings" in equity.
+  - AP aging buckets by days past due date; "current" includes bills not yet due.
+- Rejected: Rolling 30/90/365-day windows (harder to compare month to month).
+- Open: cash flow finds payables by the word "payable" in the account name; move to a subtype rule before boss-added liability accounts matter (carry forward to P2-T02).
+- Affects: 01-prd.md F-024.2, F-027, F-023.1; api/src/bookkeeper/reports/

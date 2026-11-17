@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Planning done (2026-11-18). Next: build with des-build.
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. All P1 tasks merged. Next: P1 phase-end regression, then handoff and P2. Subagents now run on Sonnet 5.5 per owner (2026-11-18). Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
 
 | Doc | Status |
 | --- | --- |
@@ -23,3 +23,16 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 - Gemini inline size limit for PDFs/images vs Files API.
 - shadcn CLI with TS 7 (fallback TS 6.0.3, D-022).
 - ngrok free static domain availability.
+
+## Build log
+| Date | Batch | Tasks | Result |
+| --- | --- | --- | --- |
+| 2026-11-18 | Setup | preview branch, build plan, D-026, push-to-main denies | Done |
+| 2026-11-18 | B1 | P1-T02 web scaffold | Verifier PASS, merged; T-208 ticked; evidence in planning/evidence/P1-T02/ |
+| 2026-11-18 | B1 | P1-T01 API scaffold | Verifier PASS, merged; T-232 ticked; D-028 tenacity pin |
+| 2026-11-18 | B2 | P1-T05 settings, CoA, /api/config | Verifier PASS, merged; T-017, T-035, T-038, T-043 ticked; T-036 first half done (ticks in P2-T05); D-029 price rule options |
+| 2026-11-18 | B2 | P1-T04 auth API | Verifier PASS, merged; T-025, T-026, T-029 ticked; settings/accounts/config routers wired in main.py behind require_boss |
+| 2026-11-18 | B2 | P1-T03 ledger posting | Verifier PASS (Sonnet), merged; T-001..T-004, T-006..T-008, T-236 ticked; migration 0002 FK RESTRICT |
+| 2026-11-18 | B3 | P1-T07 web auth, setup, settings, accounts | Verifier PASS (Sonnet), merged; 14 browser rows ticked; evidence in planning/evidence/P1-T07/ |
+| 2026-11-18 | B3 | P1-T08 demo cafe seed | FAIL (comment policy, self-ticked spec) then fix round, re-verify PASS, merged; T-209 ticked |
+| 2026-11-18 | B3 | P1-T06 reports service | Verifier PASS, merged; T-009, T-202 ticked; reports/ledger routers wired; auth stubs moved to /api/stub-*; D-030 |
