@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. Next: batch B2 (P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config).
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. B2 running in worktrees: P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config. Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
 
 | Doc | Status |
 | --- | --- |
