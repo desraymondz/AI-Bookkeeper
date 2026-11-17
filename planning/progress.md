@@ -33,3 +33,4 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B2 | P1-T05 settings, CoA, /api/config | Verifier PASS, merged; T-017, T-035, T-038, T-043 ticked; T-036 first half done (ticks in P2-T05); D-029 price rule options |
 | 2026-11-18 | B2 | P1-T04 auth API | Verifier PASS, merged; T-025, T-026, T-029 ticked; settings/accounts/config routers wired in main.py behind require_boss |
 | 2026-11-18 | B2 | P1-T03 ledger posting | Verifier PASS (Sonnet), merged; T-001..T-004, T-006..T-008, T-236 ticked; migration 0002 FK RESTRICT |
+| 2026-11-18 | B3 | P1-T07 web auth, setup, settings, accounts | Verifier PASS (Sonnet), merged; 14 browser rows ticked; evidence in planning/evidence/P1-T07/ |
