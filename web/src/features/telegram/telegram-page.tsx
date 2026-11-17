@@ -104,7 +104,7 @@ export function TelegramPage() {
               </a>
             </Button>
           </div>
-          <div role="img" aria-label="QR code for the Telegram link" className="w-fit bg-white p-4">
+          <div role="img" aria-label="QR code" className="w-fit bg-white p-4">
             <QRCodeSVG value={link.url} size={168} bgColor="#ffffff" fgColor="#000000" />
           </div>
           <p className="text-sm text-muted-foreground">

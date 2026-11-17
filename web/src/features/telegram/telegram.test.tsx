@@ -41,7 +41,7 @@ describe('T-057 connect Telegram', () => {
     expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
     const links = screen.getAllByRole('link', { name: 'Open in Telegram' })
     expect(links.some((item) => item.getAttribute('href') === link.url)).toBe(true)
-    expect(screen.getByRole('img', { name: 'QR code for the Telegram link' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'QR code' })).toBeInTheDocument()
     expect(screen.getByText('Expires 19 Nov 2026, 21:04')).toBeInTheDocument()
     expect(posted).toHaveBeenCalledTimes(1)
   })
