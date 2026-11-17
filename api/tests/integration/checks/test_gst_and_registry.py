@@ -82,9 +82,19 @@ async def test_t125_every_check_stores_result_with_reason(
     results = await run_checks(ctx)
     assert len(results) == len(CHECKS)
     assert len({r.code for r in results}) == len(CHECKS)
-    assert {"known_supplier", "arithmetic", "gst", "balanced", "duplicate"} <= {
-        r.code for r in results
-    }
+    assert len(CHECKS) == 10
+    assert {
+        "known_supplier",
+        "arithmetic",
+        "gst",
+        "balanced",
+        "duplicate",
+        "revision",
+        "price_change",
+        "period",
+        "sanity",
+        "suspicious",
+    } == {r.code for r in results}
     assert all(r.detail.strip() for r in results)
 
     await store_results(db_session, entry.id, results)
