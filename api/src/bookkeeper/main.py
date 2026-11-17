@@ -4,8 +4,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from bookkeeper.auth.wiring import include_protected, install_auth
 from bookkeeper.config import ConfigError, Settings, get_settings
 from bookkeeper.db.session import create_engine, create_sessionmaker
+from bookkeeper.web_api import accounts as accounts_api
+from bookkeeper.web_api import config as config_api
+from bookkeeper.web_api import settings as settings_api
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -24,6 +28,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="AI Bookkeeper", lifespan=lifespan)
     app.state.settings = resolved
+    install_auth(app, resolved)
+    app.include_router(config_api.router)
+    include_protected(app, settings_api.router)
+    include_protected(app, accounts_api.router)
     return app
 
 

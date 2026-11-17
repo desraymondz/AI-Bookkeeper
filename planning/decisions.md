@@ -205,3 +205,10 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Decision: Pin `tenacity~=9.1.4` until google-genai relaxes the bound.
 - Rejected: Downgrading google-genai.
 - Affects: 03-tech-stack.md section 3.2, api/pyproject.toml
+
+## D-029 Price-change rule options
+- Date: 2026-11-18
+- Context: D-007 makes the price rule configurable but names only the default. The settings builder added a second value.
+- Decision: `price_rule` accepts `any_change` (default, D-007) and `increase_only` (only unit price increases go to the boss). F-013.7 applies whichever is set.
+- Rejected: A percentage threshold (left for later if the default proves noisy).
+- Affects: 01-prd.md F-002.2, F-013.7; api/src/bookkeeper/settings_service.py

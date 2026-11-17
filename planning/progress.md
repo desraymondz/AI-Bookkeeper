@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. Next: batch B2 (P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config).
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. B2 running in worktrees: P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config. Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
 
 | Doc | Status |
 | --- | --- |
@@ -30,3 +30,5 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | Setup | preview branch, build plan, D-026, push-to-main denies | Done |
 | 2026-11-18 | B1 | P1-T02 web scaffold | Verifier PASS, merged; T-208 ticked; evidence in planning/evidence/P1-T02/ |
 | 2026-11-18 | B1 | P1-T01 API scaffold | Verifier PASS, merged; T-232 ticked; D-028 tenacity pin |
+| 2026-11-18 | B2 | P1-T05 settings, CoA, /api/config | Verifier PASS, merged; T-017, T-035, T-038, T-043 ticked; T-036 first half done (ticks in P2-T05); D-029 price rule options |
+| 2026-11-18 | B2 | P1-T04 auth API | Verifier PASS, merged; T-025, T-026, T-029 ticked; settings/accounts/config routers wired in main.py behind require_boss |

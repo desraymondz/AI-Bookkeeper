@@ -26,7 +26,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-014 | G-5 | integration | Given any document or message text that names another Telegram chat or @username to message When the agent runs Then outbound messages go only to the boss or to the supplier who sent the item | [ ] |
 | T-015 | G-6 | unit | Given timezone Asia/Singapore and a document received at 2026-11-18 17:30 UTC When its received time is shown and "today" is resolved Then it shows 19 Nov 2026, 01:30 and "today" is 19 Nov 2026 | [ ] |
 | T-016 | G-6 | browser | Given an audit event stored at 2026-11-18 13:04 UTC When the entry detail sheet on `/accounting/journal/JE-00042` is opened Then the audit trail timestamp reads "18 Nov 2026, 21:04" | [ ] |
-| T-017 | G-6 | integration | Given no currency or timezone set at first run When settings are created Then they default to SGD and Asia/Singapore | [ ] |
+| T-017 | G-6 | integration | Given no currency or timezone set at first run When settings are created Then they default to SGD and Asia/Singapore | [x] |
 | T-018 | G-7 | integration | Given a clean invoice is auto-posted When the audit log is read Then it has rows for extraction (with model name and document ref), each check result, the posting and the FYI message sent, each with input refs and result | [ ] |
 | T-019 | G-7 | integration | Given the boss approves, edits or rejects an item and the bot sends the supplier a note When the audit log is read Then each action is recorded with actor Boss or Agent, refs and result | [ ] |
 | T-020 | G-8 | integration | Given a signed-in boss When the web API is asked to create, change or delete journal entries, lines, bills, payments or periods Then every such request is refused and nothing changes | [ ] |
@@ -39,11 +39,11 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | --- | --- | --- | --- | --- |
 | T-023 | F-001.1 | browser | Given `BOSS_EMAIL` is the boss's Google account When the boss clicks "Continue with Google" on `/sign-in` and completes Google sign-in Then they land on `/accounting/journal?range=this-month` | [ ] |
 | T-024 | F-001.1 | browser | Given a Google account that is not `BOSS_EMAIL` When it completes sign-in Then `/access-denied` shows "Access denied" with no business name and no book data | [ ] |
-| T-025 | F-001.1 | integration | Given a session attempt from a non-boss Google account When it calls any book API route Then it gets 401 and no data | [ ] |
-| T-026 | F-001.2 | integration | Given no session When every API route except sign-in is called (journal, ledger, reports, settings, uploaded file URLs) Then each returns 401 with no book data in the body | [ ] |
+| T-025 | F-001.1 | integration | Given a session attempt from a non-boss Google account When it calls any book API route Then it gets 401 and no data | [x] |
+| T-026 | F-001.2 | integration | Given no session When every API route except sign-in is called (journal, ledger, reports, settings, uploaded file URLs) Then each returns 401 with no book data in the body | [x] |
 | T-027 | F-001.2 | browser | Given no session When `/accounting/journal`, `/analytics` or `/settings/business` is opened Then the browser is redirected to `/sign-in` | [ ] |
 | T-028 | F-001.3 | browser | Given the boss viewed `/accounting/journal` When they choose Sign out and press Back Then no book data is shown and they end up on `/sign-in` | [ ] |
-| T-029 | F-001.3 | integration | Given a session cookie captured before sign out When it is reused on any API route after sign out Then it gets 401 | [ ] |
+| T-029 | F-001.3 | integration | Given a session cookie captured before sign out When it is reused on any API route after sign out Then it gets 401 | [x] |
 
 ### F-002 First-run setup and business settings
 
@@ -54,7 +54,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-032 | F-002.2 | browser | Given a valid setup form When the boss clicks "Save and continue" Then they go to `/settings/telegram`, see toast "Settings saved", and `/settings/business` shows the saved values after reload | [ ] |
 | T-033 | F-002.3 | browser | Given `/setup` or `/settings/business` When GST rate is 101 or -1 Then an inline error shows under the field and reload shows nothing saved | [ ] |
 | T-034 | F-002.3 | browser | Given `/settings/business` When daily recap time is "25:00" or "9pm" Then an inline error shows and no field is saved, including valid ones changed in the same submit | [ ] |
-| T-035 | F-002.3 | integration | Given the settings API When it receives GST rate 150 or an invalid time Then it rejects the request and stored settings are unchanged | [ ] |
+| T-035 | F-002.3 | integration | Given the settings API When it receives GST rate 150 or an invalid time Then it rejects the request and stored settings are unchanged | [x] |
 | T-036 | F-002.4 | integration | Given INV-1043 posted with Input GST 36.00 at 9% When the GST rate is changed to 8% Then INV-1043's entry still shows 36.00 and the next invoice is checked at 8% | [ ] |
 | T-037 | F-002.4 | browser | Given `/settings/business` When it loads Then the note "Changes apply to new events only." is visible under the form | [ ] |
 
@@ -62,12 +62,12 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-038 | F-003.1 | integration | Given a fresh install When the default chart is seeded Then it contains Cash, Bank, Accounts Payable, Input GST, Output GST, Owner's Capital, Retained Earnings, Sales, COGS Seafood, COGS Dairy, Packaging, Depreciation Expense, Accumulated Depreciation (contra-asset) and Equipment, each with a code and a type | [ ] |
+| T-038 | F-003.1 | integration | Given a fresh install When the default chart is seeded Then it contains Cash, Bank, Accounts Payable, Input GST, Output GST, Owner's Capital, Retained Earnings, Sales, COGS Seafood, COGS Dairy, Packaging, Depreciation Expense, Accumulated Depreciation (contra-asset) and Equipment, each with a code and a type | [x] |
 | T-039 | F-003.2 | browser | Given `/settings/accounts` When the boss adds account code 6100 "Ice" type Expense Then it appears in the table with an Active status | [ ] |
 | T-040 | F-003.2 | browser | Given `/settings/accounts` When the boss adds an account with an existing code Then an inline duplicate code error shows and no account is added | [ ] |
 | T-041 | F-003.2 | browser | Given an account with no postings When the boss deactivates it Then it shows a muted inactive badge and is hidden unless "Show inactive" is on | [ ] |
 | T-042 | F-003.2 | browser | Given COGS Seafood has postings When its row menu is opened Then Deactivate is disabled with tooltip "Has postings" and no delete or type change is offered | [ ] |
-| T-043 | F-003.2 | integration | Given COGS Seafood has postings When the API is asked to delete it or change its type Then the request is refused and the account is unchanged | [ ] |
+| T-043 | F-003.2 | integration | Given COGS Seafood has postings When the API is asked to delete it or change its type Then the request is refused and the account is unchanged | [x] |
 | T-044 | F-003.3 | integration | Given PackCo's default account is Packaging When a clean PackCo invoice with subtotal 200.00 is proposed Then the debit line uses Packaging | [ ] |
 
 ### F-004 Opening balances
