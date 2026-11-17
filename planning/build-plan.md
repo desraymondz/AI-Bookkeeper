@@ -172,7 +172,8 @@ Verify: api command, uv run bk seed on a fresh db
 UI change: no
 
 ## Verifier notes carried forward
-- P1-T03: request a migration changing `journal_lines` and `check_results` FKs from `ondelete=CASCADE` to `RESTRICT` (DB-level guard for G-2). Orchestrator applies it to models.py and migrations.
+- Done (migration 0002): `journal_lines` and `check_results` FKs are RESTRICT.
+- Open: DB trigger refusing UPDATE/DELETE on posted journal entries and lines (draft in P1-T03 report). Decide after P2-T08 shows which columns change after posting. ORM guard (ledger/guard.py) does not cover Core/raw SQL; never write journal tables outside `bookkeeper.ledger`.
 - P4-T01: depreciation entries need an `asset_id` link on journal entries for per-asset accumulated depreciation (F-021.3); request schema change.
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.

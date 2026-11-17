@@ -10,14 +10,14 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-001 | G-1 | unit | Given a proposed entry Dr COGS Seafood 400.00, Dr Input GST 36.00, Cr Accounts Payable 435.00 When it is submitted for posting Then it is refused as unbalanced with difference 1.00 and nothing is written | [ ] |
-| T-002 | G-1 | unit | Given an entry with only one line, or a line amount of 0.00, or a negative line amount When it is submitted for posting Then it is refused and nothing is written | [ ] |
-| T-003 | G-1 | unit | Given lines Dr 0.10, Dr 0.20, Cr 0.30 When posted Then the entry is accepted as balanced and the stored amounts read back exactly as 0.10, 0.20 and 0.30 | [ ] |
-| T-004 | G-1 | unit | Given a line amount of 10.005 When submitted Then it is refused (more than 2 dp) and nothing is written | [ ] |
+| T-001 | G-1 | unit | Given a proposed entry Dr COGS Seafood 400.00, Dr Input GST 36.00, Cr Accounts Payable 435.00 When it is submitted for posting Then it is refused as unbalanced with difference 1.00 and nothing is written | [x] |
+| T-002 | G-1 | unit | Given an entry with only one line, or a line amount of 0.00, or a negative line amount When it is submitted for posting Then it is refused and nothing is written | [x] |
+| T-003 | G-1 | unit | Given lines Dr 0.10, Dr 0.20, Cr 0.30 When posted Then the entry is accepted as balanced and the stored amounts read back exactly as 0.10, 0.20 and 0.30 | [x] |
+| T-004 | G-1 | unit | Given a line amount of 10.005 When submitted Then it is refused (more than 2 dp) and nothing is written | [x] |
 | T-005 | G-1 | integration | Given an unbalanced entry reaching each write path (auto-post, boss approval, manual confirm, sales confirm, opening balance, depreciation, reversal) When posting is attempted Then no journal entry or line is written on any path | [ ] |
-| T-006 | G-2 | integration | Given posted entry JE-00042 When any request tries to change or delete its lines, amounts, date or status Then the request is refused and JE-00042 is unchanged | [ ] |
-| T-007 | G-2 | integration | Given posted entry JE-00042 When the boss corrects it Then a reversal entry with mirrored lines and a new entry are posted, both linked to JE-00042, and JE-00042 itself is unchanged | [ ] |
-| T-008 | G-3 | integration | Given Oct 2026 is locked When an entry dated 15 Oct 2026 is posted from any source Then it is dated inside the first open period (Nov 2026), carries a note naming the original date 15 Oct 2026, and nothing is dated inside Oct 2026 | [ ] |
+| T-006 | G-2 | integration | Given posted entry JE-00042 When any request tries to change or delete its lines, amounts, date or status Then the request is refused and JE-00042 is unchanged | [x] |
+| T-007 | G-2 | integration | Given posted entry JE-00042 When the boss corrects it Then a reversal entry with mirrored lines and a new entry are posted, both linked to JE-00042, and JE-00042 itself is unchanged | [x] |
+| T-008 | G-3 | integration | Given Oct 2026 is locked When an entry dated 15 Oct 2026 is posted from any source Then it is dated inside the first open period (Nov 2026), carries a note naming the original date 15 Oct 2026, and nothing is dated inside Oct 2026 | [x] |
 | T-009 | G-3 | integration | Given Oct 2026 is locked When the Oct 2026 trial balance is fetched before and after new postings Then the Oct 2026 totals are identical | [ ] |
 | T-010 | G-4 | integration | Given the model output for an invoice marks itself "approved" or "checks passed" but the GST check fails When the pipeline runs Then the entry is held as pending_approval and does not post | [ ] |
 | T-011 | G-4 | integration | Given any proposal (invoice, sales, manual, close) When it has not passed every check and has no boss approval or confirm Then no posted entry exists for it | [ ] |
@@ -405,7 +405,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-236 | G-3 | integration | Given Oct 2026 is locked and Nov 2026 is open When a held Oct invoice is approved Then the entry is dated 1 Nov 2026 with a note naming the original date 15 Oct 2026 | [ ] |
+| T-236 | G-3 | integration | Given Oct 2026 is locked and Nov 2026 is open When a held Oct invoice is approved Then the entry is dated 1 Nov 2026 with a note naming the original date 15 Oct 2026 | [x] |
 | T-237 | F-010.4 | e2e | Given a stranger still pending (boss has not decided) When they message again 30 hours later Then they get no reply, the boss gets no new card, and the stranger is listed in that day's recap | [ ] |
 | T-238 | F-010.5 | integration | Given a stranger sends a PDF When it is handled Then no file is written to storage and no document row is created | [ ] |
 | T-239 | F-013.6 | unit | Given an earlier Ocean Fresh INV-1043 total 436.00 When INV-1043 arrives again with total 457.80 Then Revision fails and Duplicate passes | [ ] |

@@ -363,7 +363,7 @@ class JournalLine(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     entry_id: Mapped[int] = mapped_column(
-        ForeignKey("journal_entries.id", ondelete="CASCADE"), index=True
+        ForeignKey("journal_entries.id", ondelete="RESTRICT"), index=True
     )
     line_no: Mapped[int] = mapped_column(Integer)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), index=True)
@@ -377,7 +377,7 @@ class CheckResult(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     entry_id: Mapped[int] = mapped_column(
-        ForeignKey("journal_entries.id", ondelete="CASCADE"), index=True
+        ForeignKey("journal_entries.id", ondelete="RESTRICT"), index=True
     )
     check_code: Mapped[str] = mapped_column(String(32))
     passed: Mapped[bool]
