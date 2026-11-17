@@ -141,3 +141,6 @@ async def process_update(app: FastAPI, update: Update) -> None:
                 raise
     except Exception:
         log.exception("telegram update %s failed", update.update_id)
+
+
+from bookkeeper.telegram.handlers import stranger as _stranger  # noqa: E402,F401
