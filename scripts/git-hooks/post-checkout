@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# See planning/decisions.md#D-031
+[ "${3:-0}" = "1" ] || exit 0
+exec "$(dirname "$0")/sync-if-deps-changed" "${1:-}" "${2:-}"

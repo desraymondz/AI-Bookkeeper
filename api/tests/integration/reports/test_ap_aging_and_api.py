@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookkeeper.db.models import Bill, Payment, Supplier
 from bookkeeper.reports import ap_aging
-from tests.integration.reports.helpers import d, post
+from tests.integration.reports.helpers import d
+from tests.support.factories import post, supplier
 
 pytestmark = pytest.mark.integration
 
@@ -27,20 +28,17 @@ async def add_bill(session: AsyncSession, supplier: Supplier, amount: str, due: 
 
 
 async def test_aging_buckets_and_payments(db_session: AsyncSession, ids: dict[str, int]) -> None:
-    ocean = Supplier(name="Ocean Fresh", default_account_id=ids["5000"])
-    dairy = Supplier(name="Dairy Co", default_account_id=ids["5010"])
-    db_session.add_all([ocean, dairy])
-    await db_session.flush()
+    ocean = await supplier(db_session, "Ocean Fresh", "5000")
+    dairy = await supplier(db_session, "Dairy Co", "5010")
     await add_bill(db_session, ocean, "100.00", dt.date(2026, 11, 30))
     await add_bill(db_session, ocean, "200.00", dt.date(2026, 11, 8))
     paid = await add_bill(db_session, dairy, "300.00", dt.date(2026, 9, 1))
     await add_bill(db_session, dairy, "50.00", dt.date(2026, 7, 1))
     entry = await post(
         db_session,
-        ids,
         dt.date(2026, 11, 1),
-        "Pay",
         [("2000", "300.00", "0"), ("1010", "0", "300.00")],
+        description="Pay",
     )
     db_session.add(
         Payment(
@@ -68,10 +66,9 @@ async def test_report_endpoints_respond_and_reject_writes(
 ) -> None:
     await post(
         db_session,
-        ids,
         dt.date(2026, 11, 2),
-        "Sale",
         [("1000", "10.00", "0"), ("4000", "0", "10.00")],
+        description="Sale",
     )
     for path in ("trial-balance", "adjusted-trial-balance", "ap-aging"):
         res = await client.get(f"/api/reports/{path}", params={"as_at": "2026-11-30"})

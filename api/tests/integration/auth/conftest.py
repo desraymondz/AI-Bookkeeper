@@ -9,9 +9,10 @@ from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 from itsdangerous import TimestampSigner
 
-from bookkeeper.auth.wiring import SESSION_COOKIE, include_protected
+from bookkeeper.auth.wiring import SESSION_COOKIE
 from bookkeeper.config import load_settings
 from bookkeeper.main import create_app
+from bookkeeper.routes import register_protected
 from tests.env import DUMMY_ENV
 
 BOSS_EMAIL = DUMMY_ENV["BOSS_EMAIL"]
@@ -86,8 +87,7 @@ def make_app(database_url: str) -> AppFactory:
     def _make(**overrides: Any) -> FastAPI:
         settings = load_settings(database_url=database_url, **overrides)
         app = create_app(settings)
-        for router in dummy_book_routers():
-            include_protected(app, router)
+        register_protected(app, dummy_book_routers())
         return app
 
     return _make

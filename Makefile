@@ -1,5 +1,5 @@
 # See planning/03-tech-stack.md section 10.3
-.PHONY: setup db migrate seed api web tunnel webhook lint format typecheck test e2e eval check prod-up
+.PHONY: setup sync deps-check verify hooks db migrate seed api web tunnel webhook lint format typecheck test e2e eval check prod-up
 
 API := cd api &&
 WEB := cd web &&
@@ -8,6 +8,20 @@ setup:
 	cp -n .env.example .env || true
 	$(API) uv sync
 	$(WEB) pnpm install
+
+sync:
+	$(API) uv sync --locked
+	$(WEB) pnpm install --frozen-lockfile
+
+deps-check:
+	$(API) uv lock --check
+	$(WEB) pnpm install --frozen-lockfile --lockfile-only
+
+verify: deps-check lint typecheck test
+	$(WEB) pnpm build
+
+hooks:
+	git config core.hooksPath scripts/git-hooks
 
 db:
 	docker compose up -d --wait postgres

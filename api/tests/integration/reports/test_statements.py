@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookkeeper.db.models import Account, AccountType
 from bookkeeper.reports import balance_sheet, profit_and_loss, trial_balance
-from tests.integration.reports.helpers import ZERO, d, post, seed_three_months
+from tests.integration.reports.helpers import ZERO, d, seed_three_months
+from tests.support.factories import post
 
 pytestmark = pytest.mark.integration
 
@@ -13,7 +14,7 @@ pytestmark = pytest.mark.integration
 async def test_trial_balance_lists_non_zero_accounts_and_totals_agree(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     tb = await trial_balance(db_session, dt.date(2026, 9, 30))
     assert tb.total_debit == tb.total_credit
     assert tb.difference == ZERO
@@ -29,7 +30,7 @@ async def test_trial_balance_lists_non_zero_accounts_and_totals_agree(
 async def test_unadjusted_excludes_adjusting_entries(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     day = dt.date(2026, 9, 30)
     unadjusted = await trial_balance(db_session, day, adjusted=False)
     adjusted = await trial_balance(db_session, day, adjusted=True)
@@ -41,7 +42,7 @@ async def test_unadjusted_excludes_adjusting_entries(
 
 
 async def test_profit_and_loss_sections(db_session: AsyncSession, ids: dict[str, int]) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     other = Account(
         code="7000", name="Interest Income", type=AccountType.REVENUE, subtype="other_income"
     )
@@ -50,10 +51,9 @@ async def test_profit_and_loss_sections(db_session: AsyncSession, ids: dict[str,
     ids["7000"] = other.id
     await post(
         db_session,
-        ids,
         dt.date(2026, 10, 28),
-        "Interest",
         [("1010", "12.00", "0"), ("7000", "0", "12.00")],
+        description="Interest",
     )
     pnl = await profit_and_loss(db_session, dt.date(2026, 10, 1), dt.date(2026, 10, 31))
     assert pnl.total_revenue == d("2000.00")
@@ -68,7 +68,7 @@ async def test_profit_and_loss_sections(db_session: AsyncSession, ids: dict[str,
 async def test_balance_sheet_balances_before_any_closing_entry(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     sheet = await balance_sheet(db_session, dt.date(2026, 11, 30))
     assert sheet.balanced
     assert sheet.difference == ZERO
@@ -84,10 +84,9 @@ async def test_balance_sheet_earnings_flow_into_equity(
 ) -> None:
     await post(
         db_session,
-        ids,
         dt.date(2026, 11, 2),
-        "Sale",
         [("1000", "300.00", "0"), ("4000", "0", "300.00")],
+        description="Sale",
     )
     sheet = await balance_sheet(db_session, dt.date(2026, 11, 30))
     earnings = next(ln for ln in sheet.equity if ln.account_id is None)

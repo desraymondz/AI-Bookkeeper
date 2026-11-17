@@ -1,3 +1,5 @@
+"""See planning/decisions.md#D-031."""
+
 from collections.abc import AsyncIterator
 
 import httpx
@@ -10,8 +12,10 @@ from bookkeeper.config import load_settings
 from bookkeeper.main import create_app
 from bookkeeper.web_api import get_db
 
+BASE_URL = "http://test"
 
-def build_app(db_session: AsyncSession, *, signed_in: bool = True) -> FastAPI:
+
+def build_test_app(db_session: AsyncSession, *, signed_in: bool = True) -> FastAPI:
     resolved = load_settings(_env_file=None)
     app = create_app(resolved)
 
@@ -27,8 +31,19 @@ def build_app(db_session: AsyncSession, *, signed_in: bool = True) -> FastAPI:
     return app
 
 
+async def _client(app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url=BASE_URL) as c:
+        yield c
+
+
 @pytest.fixture
 async def client(db_session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
-    transport = httpx.ASGITransport(app=build_app(db_session))
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+    async for c in _client(build_test_app(db_session)):
+        yield c
+
+
+@pytest.fixture
+async def anon_client(db_session: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
+    async for c in _client(build_test_app(db_session, signed_in=False)):
         yield c
