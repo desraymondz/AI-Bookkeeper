@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Planning done (2026-11-18). Next: build with des-build.
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). Next: batch B1 (P1-T01 API scaffold, P1-T02 web scaffold).
 
 | Doc | Status |
 | --- | --- |
@@ -23,3 +23,8 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 - Gemini inline size limit for PDFs/images vs Files API.
 - shadcn CLI with TS 7 (fallback TS 6.0.3, D-022).
 - ngrok free static domain availability.
+
+## Build log
+| Date | Batch | Tasks | Result |
+| --- | --- | --- | --- |
+| 2026-11-18 | Setup | preview branch, build plan, D-026, push-to-main denies | Done |

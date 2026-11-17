@@ -183,3 +183,11 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Rejected: Changing the eval so the trap passes when the injected text has no effect.
 - Why: Defence in depth; an injected document should always be seen by the boss.
 - Affects: 01-prd.md F-013.10, 04-test-spec.md T-222, T-233 to T-235
+
+## D-026 Build order
+- Date: 2026-11-18
+- Context: des-build needs a dependency-safe order for parallel builders.
+- Decision: Six phases (foundation, Telegram and invoice pipeline, boss operations, month end, web books, eval and self-host) per `planning/build-plan.md`. Scaffolds first because they create all shared files; ledger and reports next because every write path (G-1) and every number shown by bot, web and PDF depends on them; checks and extractor are independent leaf modules built in parallel before the invoice graph wires them; web books follow the reports service so pages only render, never compute. Builder and verifier both run on Opus; browser checks use the project's Playwright with the test-only login.
+- Rejected: Feature-by-feature vertical slices from the start (would race on the schema and shared files).
+- Why: Fewer merge conflicts, earliest possible trust in the ledger.
+- Affects: planning/build-plan.md

@@ -19,14 +19,19 @@
       "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
-      "Bash(git push origin main:*)"
+      "Bash(git push origin main:*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(git push -u origin main*)"
     ]
   },
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "cat \"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/planning/progress.md\"" }
+          {
+            "type": "command",
+            "command": "cat \"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/planning/progress.md\""
+          }
         ]
       }
     ],
@@ -34,7 +39,10 @@
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/protect.sh\"" }
+          {
+            "type": "command",
+            "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/protect.sh\""
+          }
         ]
       }
     ],
@@ -42,14 +50,21 @@
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/lint-file.sh\"" }
+          {
+            "type": "command",
+            "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/lint-file.sh\""
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/quick-check.sh\"", "timeout": 45 }
+          {
+            "type": "command",
+            "command": "\"/Users/desmond/Documents/Side Projects/AI-Bookkeeper/.claude/hooks/quick-check.sh\"",
+            "timeout": 45
+          }
         ]
       }
     ]
