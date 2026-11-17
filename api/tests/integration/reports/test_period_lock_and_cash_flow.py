@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bookkeeper.db.models import EntryKind
 from bookkeeper.ledger import lock_period
 from bookkeeper.reports import cash_flow, trial_balance
-from tests.integration.reports.helpers import ZERO, d, post, seed_three_months
+from tests.integration.reports.helpers import ZERO, d, seed_three_months
+from tests.support.factories import post
 
 pytestmark = pytest.mark.integration
 
@@ -27,7 +28,7 @@ async def cash_and_bank(session: AsyncSession, as_at: dt.date) -> Decimal:
 async def test_t009_locked_month_totals_do_not_move(
     db_session: AsyncSession, ids: dict[str, int], client: httpx.AsyncClient
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     await lock_period(db_session, 2026, 10)
     urls = [
         "/api/reports/trial-balance?as_at=2026-10-31",
@@ -38,25 +39,22 @@ async def test_t009_locked_month_totals_do_not_move(
 
     await post(
         db_session,
-        ids,
         dt.date(2026, 11, 22),
-        "Late sale",
         [("1000", "50.00", "0"), ("4000", "0", "50.00")],
+        description="Late sale",
     )
     late = await post(
         db_session,
-        ids,
         dt.date(2026, 10, 15),
-        "Late invoice",
         [("6010", "75.00", "0"), ("2000", "0", "75.00")],
+        description="Late invoice",
     )
     assert late.date == dt.date(2026, 11, 1)
     await post(
         db_session,
-        ids,
         dt.date(2026, 12, 2),
-        "Dec depreciation",
         [("6200", "100.00", "0"), ("1510", "0", "100.00")],
+        description="Dec depreciation",
         kind=EntryKind.ADJUSTING,
     )
 
@@ -68,7 +66,7 @@ async def test_t009_locked_month_totals_do_not_move(
 async def test_t202_net_change_equals_cash_and_bank_movement(
     db_session: AsyncSession, ids: dict[str, int], start: dt.date, end: dt.date
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     flow = await cash_flow(db_session, start, end)
     opening = await cash_and_bank(db_session, start - dt.timedelta(days=1))
     closing = await cash_and_bank(db_session, end)
@@ -81,7 +79,7 @@ async def test_t202_net_change_equals_cash_and_bank_movement(
 async def test_cash_flow_sections_for_the_first_month(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     flow = await cash_flow(db_session, dt.date(2026, 9, 1), dt.date(2026, 9, 30))
     assert flow.net_profit == ZERO
     assert flow.depreciation_addback == d("100.00")
@@ -99,13 +97,12 @@ async def test_cash_flow_sections_for_the_first_month(
 async def test_cash_flow_reports_payables_movement(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     await post(
         db_session,
-        ids,
         dt.date(2026, 11, 25),
-        "Big invoice",
         [("5100", "600.00", "0"), ("2000", "0", "600.00")],
+        description="Big invoice",
     )
     flow = await cash_flow(db_session, dt.date(2026, 11, 1), dt.date(2026, 11, 30))
     assert [(ln.name, ln.amount) for ln in flow.payables_change] == [

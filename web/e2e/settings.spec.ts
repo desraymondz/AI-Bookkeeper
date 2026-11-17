@@ -1,4 +1,6 @@
-import { configureBusiness, expect, readSettings, signIn, test } from './fixtures.ts'
+import { expect, test } from './fixtures.ts'
+import { signIn } from './support/auth.ts'
+import { configureBusiness, readSettings } from './support/seed.ts'
 
 test.beforeEach(async ({ page }) => {
   await signIn(page)

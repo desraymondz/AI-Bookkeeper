@@ -1,4 +1,6 @@
-import { BUSINESS_NAME, configureBusiness, expect, signIn, test } from './fixtures.ts'
+import { expect, test } from './fixtures.ts'
+import { signIn } from './support/auth.ts'
+import { BUSINESS_NAME, configureBusiness } from './support/seed.ts'
 
 const JOURNAL = '/accounting/journal?range=this-month'
 

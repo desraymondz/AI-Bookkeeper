@@ -17,6 +17,8 @@ os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 from bookkeeper.db.session import create_engine
 
+pytest_plugins = ["tests.support.app", "tests.support.factories", "tests.support.fakes"]
+
 API_DIR = Path(__file__).resolve().parents[1]
 PG_IMAGE = "pgvector/pgvector:0.8.7-pg18-trixie"
 

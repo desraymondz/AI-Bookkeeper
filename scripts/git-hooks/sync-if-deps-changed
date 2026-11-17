@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# See planning/decisions.md#D-031
+old="${1:-}"
+new="${2:-}"
+[ -n "$old" ] && [ -n "$new" ] || exit 0
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$root" || exit 0
+changed="$(git diff --name-only "$old" "$new" -- api/uv.lock api/pyproject.toml web/pnpm-lock.yaml web/package.json 2>/dev/null)" || exit 0
+if [ -n "$changed" ]; then
+  make sync >/dev/null 2>&1 || echo "make sync failed after dependency change; run it manually." >&2
+fi
+exit 0
