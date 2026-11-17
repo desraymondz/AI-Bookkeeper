@@ -178,6 +178,7 @@ UI change: no
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
 - P2-T02: switch cash-flow payables detection from account name to a subtype (D-030 open item).
+- Open (P2-T00 verifier): web/e2e/support/seed.ts `seedPostingsFor` still raw-inserts journal rows (moved unchanged from db.ts; D-031 says no raw journal inserts). New e2e must not use it; replace with a ledger-service path (e.g. a `bk` seed command) by P5-T01.
 
 ## P2 onward: integration rules (D-031)
 P2-T00 runs first and alone; every later P2 card assumes its harness.

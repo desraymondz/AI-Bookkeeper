@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. P1 Foundation DONE (2026-11-18): phase regression PASS (api 233, web 26, e2e 24). P2 started under D-031: P2-T00 integration harness building, then B4. Subagents now run on Sonnet 5.5 per owner (2026-11-18). Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. P1 Foundation DONE (2026-11-18): phase regression PASS (api 233, web 26, e2e 24). P2 started under D-031: P2-T00 integration harness merged; B4 (P2-T01, T05, T06, T07) building. Subagents now run on Sonnet 5.5 per owner (2026-11-18). Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
 
 | Doc | Status |
 | --- | --- |
@@ -36,6 +36,7 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B3 | P1-T07 web auth, setup, settings, accounts | Verifier PASS (Sonnet), merged; 14 browser rows ticked; evidence in planning/evidence/P1-T07/ |
 | 2026-11-18 | B3 | P1-T08 demo cafe seed | FAIL (comment policy, self-ticked spec) then fix round, re-verify PASS, merged; T-209 ticked |
 | 2026-11-18 | B3 | P1-T06 reports service | Verifier PASS, merged; T-009, T-202 ticked; reports/ledger routers wired; auth stubs moved to /api/stub-*; D-030 |
+| 2026-11-18 | P2 | P2-T00 integration harness | Builder cut off uncommitted; Sonnet builder finished; verifier PASS (api 241, web 26, e2e 24), merged; make hooks and make sync run in main checkout |
 
 ## P1 phase summary
 - Built: API and web scaffolds, ledger posting service and periods, Google auth and sessions, settings and chart of accounts, reports service, web sign-in/setup/settings/accounts, demo cafe seed.
