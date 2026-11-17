@@ -1,0 +1,61 @@
+# See planning/03-tech-stack.md sections 2, 9, 10 and planning/decisions.md#D-014
+name: ai-bookkeeper
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg18-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookkeeper}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookkeeper}
+      POSTGRES_DB: ${POSTGRES_DB:-bookkeeper}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    profiles: ["prod"]
+    build: ./api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+      STORAGE_DIR: /data/storage
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    profiles: ["prod"]
+    build: ./web
+    restart: unless-stopped
+
+  caddy:
+    profiles: ["prod"]
+    image: caddy:2.11
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - web
+
+volumes:
+  pgdata:
+  storage:
+  caddy_data:
+  caddy_config:
