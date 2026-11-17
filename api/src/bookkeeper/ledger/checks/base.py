@@ -26,6 +26,7 @@ class CheckContext:
     invoice: ExtractedInvoice
     document: Document
     proposed_entry: EntryDraft
+    current_invoice_id: int | None = None
 
 
 class Check(Protocol):

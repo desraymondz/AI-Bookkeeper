@@ -102,6 +102,7 @@ def make_ctx(
     sender: User | None = None,
     entry: EntryDraft | None = None,
     document: Document | None = None,
+    current_invoice_id: int | None = None,
 ) -> CheckContext:
     supplier = supplier or make_supplier()
     return CheckContext(
@@ -112,4 +113,5 @@ def make_ctx(
         invoice=invoice or make_invoice(),
         document=document or make_document(),
         proposed_entry=entry or make_entry(),
+        current_invoice_id=current_invoice_id,
     )

@@ -40,8 +40,9 @@ async def add_invoice(
     date: dt.date,
     total: Decimal,
     post_with: dict[str, int] | None = None,
+    document: Document | None = None,
 ) -> tuple[Invoice, JournalEntry | None]:
-    doc = await add_document(session)
+    doc = document or await add_document(session)
     invoice = Invoice(
         document_id=doc.id,
         supplier_id=supplier.id,

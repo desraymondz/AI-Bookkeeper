@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from sqlalchemy import ColumnElement, select
+from sqlalchemy import ColumnElement, select, true
 
 from bookkeeper.db.models import Document, EntryKind, EntryStatus, Invoice, JournalEntry
 from bookkeeper.ledger.checks.base import CheckContext, CheckResult
@@ -46,7 +46,8 @@ async def run(ctx: CheckContext) -> CheckResult:
     same_file_docs = select(Document.id).where(
         Document.sha256 == document.sha256, Document.id <= document.id
     )
-    by_file = await _first(ctx, Invoice.document_id.in_(same_file_docs))
+    not_current = Invoice.id != ctx.current_invoice_id if ctx.current_invoice_id else true()
+    by_file = await _first(ctx, Invoice.document_id.in_(same_file_docs), not_current)
     if by_file is not None:
         return CheckResult(
             CODE, False, f"Same file already received as {await _earlier(ctx, by_file)}."
@@ -54,7 +55,11 @@ async def run(ctx: CheckContext) -> CheckResult:
     if supplier is None:
         return CheckResult(CODE, True, "No supplier to compare against.")
 
-    others = (Invoice.supplier_id == supplier.id, Invoice.document_id != document.id)
+    others = (
+        Invoice.supplier_id == supplier.id,
+        Invoice.document_id != document.id,
+        not_current,
+    )
     if invoice.invoice_no and invoice.total is not None:
         by_number = await _first(
             ctx,
