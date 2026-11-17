@@ -64,7 +64,7 @@ async def test_t114_same_file_fails(db_session: AsyncSession, ids: dict[str, int
         settings=settings,
         supplier=ocean,
         sender=make_sender(ocean),
-        invoice=make_invoice(invoice_number="INV-9999", total=Decimal("1.00")),
+        invoice=make_invoice(invoice_no="INV-9999", total=Decimal("1.00")),
         document=doc,
     )
     assert not (await duplicate.run(ctx)).passed
@@ -90,7 +90,7 @@ async def test_t115_same_total_within_window(
         settings=settings,
         supplier=ocean,
         sender=make_sender(ocean),
-        invoice=make_invoice(invoice_number="INV-2000", invoice_date=new_date),
+        invoice=make_invoice(invoice_no="INV-2000", invoice_date=new_date),
         document=await add_document(db_session),
     )
     assert (await duplicate.run(ctx)).passed is passed
@@ -142,7 +142,7 @@ async def test_t240_window_measured_on_invoice_date(
         settings=settings,
         supplier=ocean,
         sender=make_sender(ocean),
-        invoice=make_invoice(invoice_number="INV-2000", invoice_date=new_date),
+        invoice=make_invoice(invoice_no="INV-2000", invoice_date=new_date),
         document=await add_document(db_session),
     )
     assert (await duplicate.run(ctx)).passed is passed

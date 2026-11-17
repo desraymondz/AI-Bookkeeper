@@ -190,6 +190,7 @@ Verify: make deps-check && make verify && make e2e
 UI change: no
 
 ### Builder rules, added for P2 onward
+Superseded by planning/builder-rules.md and planning/verifier-rules.md (D-032). Prompts point to those files.
 > - Before reporting: (1) your T-xxx tests green in isolation; (2) `scripts/wt.sh integrate` (merges latest `preview`, runs `make sync`); (3) resolve conflicts, keeping both sides of route registry and lockfile changes; (4) `make verify` green on the integrated branch; (5) commit the merge. State the integrated `preview` SHA in the report.
 > - Register routers only by appending to `api/src/bookkeeper/routes.py`. Integration tests use `tests/support` (real `create_app`, stub boss, factories through the ledger service); no task-local app builders, fakes or raw journal inserts.
 > - New dependencies: add them and commit the updated lockfile in the same commit; `make deps-check` must pass.

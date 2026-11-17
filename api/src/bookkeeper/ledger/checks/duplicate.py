@@ -55,18 +55,18 @@ async def run(ctx: CheckContext) -> CheckResult:
         return CheckResult(CODE, True, "No supplier to compare against.")
 
     others = (Invoice.supplier_id == supplier.id, Invoice.document_id != document.id)
-    if invoice.invoice_number and invoice.total is not None:
+    if invoice.invoice_no and invoice.total is not None:
         by_number = await _first(
             ctx,
             *others,
-            Invoice.invoice_no == invoice.invoice_number,
+            Invoice.invoice_no == invoice.invoice_no,
             Invoice.total == invoice.total,
         )
         if by_number is not None:
             return CheckResult(
                 CODE,
                 False,
-                f"{supplier.name} {invoice.invoice_number} already exists as "
+                f"{supplier.name} {invoice.invoice_no} already exists as "
                 f"{await _earlier(ctx, by_number)} with the same total.",
             )
     if invoice.invoice_date is not None and invoice.total is not None:

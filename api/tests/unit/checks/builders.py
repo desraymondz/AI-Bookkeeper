@@ -45,17 +45,25 @@ def make_sender(supplier: Supplier | None, role: UserRole = UserRole.SUPPLIER) -
 def make_invoice(**fields: Any) -> ExtractedInvoice:
     lines = [
         ExtractedLine(
-            description="Salmon", qty=D(10), unit_price=D("28.00"), line_total=D("280.00")
+            description="Salmon",
+            unit=None,
+            qty=D(10),
+            unit_price=D("28.00"),
+            line_total=D("280.00"),
         ),
         ExtractedLine(
-            description="Prawns", qty=D(4), unit_price=D("30.00"), line_total=D("120.00")
+            description="Prawns", unit=None, qty=D(4), unit_price=D("30.00"), line_total=D("120.00")
         ),
     ]
     values: dict[str, Any] = {
         "supplier_name": "OCEAN FRESH PTE. LTD.",
-        "invoice_number": "INV-1043",
+        "invoice_no": "INV-1043",
         "invoice_date": dt.date(2026, 11, 1),
         "currency": "SGD",
+        "due_date": None,
+        "terms_days": None,
+        "suspicious_content": False,
+        "confidence": Decimal("0.95"),
         "lines": lines,
         "subtotal": D("400.00"),
         "gst": D("36.00"),

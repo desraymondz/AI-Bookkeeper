@@ -12,6 +12,7 @@ from tests.unit.checks.builders import make_ctx, make_invoice
 def _line(total: str) -> ExtractedLine:
     return ExtractedLine(
         description="Salmon",
+        unit=None,
         qty=Decimal(10),
         unit_price=Decimal("28.00"),
         line_total=Decimal(total),
