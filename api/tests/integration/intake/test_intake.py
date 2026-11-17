@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 import httpx
-import pillow_heif  # type: ignore[import-untyped]
+import pillow_heif
 import pytest
 from fastapi import FastAPI
 from PIL import Image
