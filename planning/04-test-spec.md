@@ -399,7 +399,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | --- | --- | --- | --- | --- |
 | T-230 | F-031.1 | integration | Given the README and the list of required env vars the app checks at start When compared Then every credential (BotFather token, Google OAuth client, Gemini API key, `BOSS_EMAIL`, webhook secret and the rest) has creation steps in the README | [ ] |
 | T-231 | F-031.2 | e2e | Given a fresh clone with a filled `.env` When `docker compose up` and the documented single commands for API, web, ngrok and webhook registration are run Then Postgres is up, the web loads `/sign-in`, and a `/start` to the bot reaches the webhook | [ ] |
-| T-232 | F-031.3 | integration | Given `BOSS_EMAIL` (then each other required var in turn) is unset When the app starts Then it exits non-zero with a message naming the missing variable | [ ] |
+| T-232 | F-031.3 | integration | Given `BOSS_EMAIL` (then each other required var in turn) is unset When the app starts Then it exits non-zero with a message naming the missing variable | [x] |
 
 ### Defaults from decisions.md#D-024
 

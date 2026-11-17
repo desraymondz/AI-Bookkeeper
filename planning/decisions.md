@@ -198,3 +198,10 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Decision: Self-host Montserrat via @fontsource-variable (tech stack wins; no external font request). API exposes `GET /api/config` returning `{ bot_username, business_name }` (both nullable), built in P1-T05.
 - Rejected: Google Fonts CDN; `VITE_` env var for the bot username (would need a rebuild per deployment).
 - Affects: 02-design.md section 4, 03-tech-stack.md section 8, planning/build-plan.md P1-T05
+
+## D-028 tenacity pinned to 9.1.x
+- Date: 2026-11-18
+- Context: 03-tech-stack.md section 3.2 pins tenacity 9.2.1, but google-genai 3.4.0 requires tenacity<9.2.0.
+- Decision: Pin `tenacity~=9.1.4` until google-genai relaxes the bound.
+- Rejected: Downgrading google-genai.
+- Affects: 03-tech-stack.md section 3.2, api/pyproject.toml

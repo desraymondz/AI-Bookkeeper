@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). Next: batch B1 (P1-T01 API scaffold, P1-T02 web scaffold).
+Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. Next: batch B2 (P1-T03 ledger, P1-T04 auth, P1-T05 settings/CoA/config).
 
 | Doc | Status |
 | --- | --- |
@@ -29,3 +29,4 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | --- | --- | --- | --- |
 | 2026-11-18 | Setup | preview branch, build plan, D-026, push-to-main denies | Done |
 | 2026-11-18 | B1 | P1-T02 web scaffold | Verifier PASS, merged; T-208 ticked; evidence in planning/evidence/P1-T02/ |
+| 2026-11-18 | B1 | P1-T01 API scaffold | Verifier PASS, merged; T-232 ticked; D-028 tenacity pin |

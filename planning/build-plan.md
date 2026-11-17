@@ -170,3 +170,7 @@ Owns files: api/eval/seed/, api/src/bookkeeper/cli.py seed command (orchestrator
 Depends on: P1-T03, P1-T05
 Verify: api command, uv run bk seed on a fresh db
 UI change: no
+
+## Verifier notes carried forward
+- P1-T03: request a migration changing `journal_lines` and `check_results` FKs from `ondelete=CASCADE` to `RESTRICT` (DB-level guard for G-2). Orchestrator applies it to models.py and migrations.
+- P4-T01: depreciation entries need an `asset_id` link on journal entries for per-asset accumulated depreciation (F-021.3); request schema change.
