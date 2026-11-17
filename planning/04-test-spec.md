@@ -68,7 +68,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-041 | F-003.2 | browser | Given an account with no postings When the boss deactivates it Then it shows a muted inactive badge and is hidden unless "Show inactive" is on | [x] |
 | T-042 | F-003.2 | browser | Given COGS Seafood has postings When its row menu is opened Then Deactivate is disabled with tooltip "Has postings" and no delete or type change is offered | [x] |
 | T-043 | F-003.2 | integration | Given COGS Seafood has postings When the API is asked to delete it or change its type Then the request is refused and the account is unchanged | [x] |
-| T-044 | F-003.3 | integration | Given PackCo's default account is Packaging When a clean PackCo invoice with subtotal 200.00 is proposed Then the debit line uses Packaging | [ ] |
+| T-044 | F-003.3 | integration | Given PackCo's default account is Packaging When a clean PackCo invoice with subtotal 200.00 is proposed Then the debit line uses Packaging | [x] |
 
 ### F-004 Opening balances
 
@@ -167,13 +167,13 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
 | T-097 | F-012.1 | eval | Given the standard INV-1043 PDF When extracted Then supplier Ocean Fresh, invoice no. INV-1043, date 1 Nov 2026, due date or terms, two lines (salmon 10 kg 28.00 280.00; prawns 6 kg 20.00 120.00), subtotal 400.00, GST 36.00, total 436.00, currency SGD | [ ] |
-| T-098 | F-012.2 | unit | Given model output where total is "abc" or a required key is missing When validated Then it is rejected as invalid and no proposal is made from it | [ ] |
+| T-098 | F-012.2 | unit | Given model output where total is "abc" or a required key is missing When validated Then it is rejected as invalid and no proposal is made from it | [x] |
 | T-099 | F-012.2 | eval | Given an invoice whose due date is smudged When extracted Then due date is null (not guessed) and due date falls back to invoice date + supplier terms | [ ] |
 | T-100 | F-012.2 | integration | Given extraction returns invoice number null or total null When processed Then nothing posts and the boss gets a card saying the field could not be read | [ ] |
-| T-101 | F-012.2 | integration | Given the model call fails 3 times in a row When an invoice is processed Then it was tried 3 times in total and the boss gets a "could not read" message; nothing posts | [ ] |
-| T-102 | F-012.3 | unit | Given GST registered and INV-1043 When the entry is proposed Then it is Dr COGS Seafood 400.00, Dr Input GST 36.00, Cr Accounts Payable 436.00 | [ ] |
-| T-103 | F-012.3 | unit | Given GST not registered and an invoice subtotal 400.00, GST 36.00, total 436.00 When proposed Then it is Dr COGS Seafood 436.00, Cr Accounts Payable 436.00 with no Input GST line | [ ] |
-| T-104 | F-012.4 | integration | Given any proposal When stored Then it has a confidence value and the model name, and both appear in the entry's audit trail | [ ] |
+| T-101 | F-012.2 | integration | Given the model call fails 3 times in a row When an invoice is processed Then it was tried 3 times in total and the boss gets a "could not read" message; nothing posts | [x] |
+| T-102 | F-012.3 | unit | Given GST registered and INV-1043 When the entry is proposed Then it is Dr COGS Seafood 400.00, Dr Input GST 36.00, Cr Accounts Payable 436.00 | [x] |
+| T-103 | F-012.3 | unit | Given GST not registered and an invoice subtotal 400.00, GST 36.00, total 436.00 When proposed Then it is Dr COGS Seafood 436.00, Cr Accounts Payable 436.00 with no Input GST line | [x] |
+| T-104 | F-012.4 | integration | Given any proposal When stored Then it has a confidence value and the model name, and both appear in the entry's audit trail | [x] |
 
 ### F-013 Deterministic checks
 
