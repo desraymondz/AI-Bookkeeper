@@ -5,7 +5,18 @@ from collections.abc import Awaitable, Callable
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookkeeper.db.models import CheckResult as CheckRow
-from bookkeeper.ledger.checks import arithmetic, balanced, duplicate, gst, known_supplier
+from bookkeeper.ledger.checks import (
+    arithmetic,
+    balanced,
+    duplicate,
+    gst,
+    known_supplier,
+    period,
+    price_change,
+    revision,
+    sanity,
+    suspicious,
+)
 from bookkeeper.ledger.checks.base import CheckContext, CheckResult
 
 CheckFn = Callable[[CheckContext], Awaitable[CheckResult]]
@@ -16,6 +27,11 @@ CHECKS: list[CheckFn] = [
     gst.run,
     balanced.run,
     duplicate.run,
+    revision.run,
+    price_change.run,
+    period.run,
+    sanity.run,
+    suspicious.run,
 ]
 
 

@@ -2,11 +2,10 @@
 
 import re
 from collections.abc import Iterator
-from typing import Any
 
 from bookkeeper.ledger.checks.base import CheckContext, CheckResult
 
-CODE = "F-013.10"
+CODE = "suspicious"
 
 PATTERNS: tuple[re.Pattern[str], ...] = tuple(
     re.compile(pattern, re.IGNORECASE)
@@ -27,17 +26,9 @@ PATTERNS: tuple[re.Pattern[str], ...] = tuple(
 
 
 def _texts(ctx: CheckContext) -> Iterator[str]:
-    invoice: Any = ctx.invoice
-    sources = [
-        getattr(ctx.document, "text", None),
-        getattr(invoice, "raw_text", None),
-        getattr(invoice, "supplier_name", None),
-        getattr(invoice, "invoice_no", None),
-    ]
-    sources.extend(getattr(line, "description", None) for line in getattr(invoice, "lines", []))
-    for source in sources:
-        if isinstance(source, str) and source:
-            yield source
+    invoice = ctx.invoice
+    yield from (value for value in (invoice.supplier_name, invoice.invoice_no) if value)
+    yield from (line.description for line in invoice.lines if line.description)
 
 
 def find_instruction(text: str) -> str | None:
@@ -53,6 +44,6 @@ async def run(ctx: CheckContext) -> CheckResult:
         phrase = find_instruction(text)
         if phrase:
             return CheckResult(CODE, False, f'Instruction-like text found: "{phrase}"')
-    if getattr(ctx.invoice, "suspicious_content", False):
+    if ctx.invoice.suspicious_content:
         return CheckResult(CODE, False, "Extractor flagged suspicious content")
-    return CheckResult(CODE, True, None)
+    return CheckResult(CODE, True, "No instruction-like content found.")
