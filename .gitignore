@@ -1,0 +1,32 @@
+# env
+.env*
+!.env.example
+
+# storage
+storage/*
+!storage/.gitkeep
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# node
+node_modules/
+dist/
+web/test-results/
+web/playwright-report/
+*.tsbuildinfo
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# claude local
+.claude/settings.local.json
