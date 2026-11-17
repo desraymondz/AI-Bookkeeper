@@ -21,14 +21,12 @@ from bookkeeper.db.models import (
     UserStatus,
 )
 from bookkeeper.telegram import handlers as registry
-from bookkeeper.telegram import notify
 from bookkeeper.telegram.keyboards import Button, decode_callback, inline_keyboard
-from bookkeeper.telegram.router import Handler, HandlerContext, Role, Sender
+from bookkeeper.telegram.router import Handler, HandlerContext, Role
 from bookkeeper.templates import render
 
 PREVIEW_LIMIT = 200
 NAME_LIMIT = 200
-REF_PATTERN = re.compile(r"Ref S(\d+)")
 DEFAULT_PURCHASE_CODE = "5000"
 
 
@@ -138,8 +136,7 @@ async def _bind(session: AsyncSession, stranger: Stranger, supplier: Supplier) -
 async def _notify_added(ctx: HandlerContext, stranger: Stranger, supplier: Supplier) -> None:
     await _bind(ctx.session, stranger, supplier)
     await ctx.session.flush()
-    target = Sender(Role.SUPPLIER, stranger.telegram_user_id, supplier_id=supplier.id)
-    await notify.to_sender(ctx._bot, target, render("stranger_added"))
+    await ctx.to_supplier(supplier.id, render("stranger_added"))
 
 
 async def _default_account_id(session: AsyncSession) -> int | None:
@@ -198,11 +195,16 @@ async def handle_stranger_callback(ctx: HandlerContext) -> None:
     await ctx.answer_callback(query.id)
 
 
+PROMPT_PATTERN = re.compile(
+    r"Reply to this message with the new supplier name for .*\.\nRef S(\d+)", re.DOTALL
+)
+
+
 def _reply_ref(update: Update) -> int | None:
     message = update.message
     if message is None or not message.text or message.reply_to_message is None:
         return None
-    found = REF_PATTERN.search(message.reply_to_message.text or "")
+    found = PROMPT_PATTERN.fullmatch((message.reply_to_message.text or "").strip())
     return int(found.group(1)) if found else None
 
 
@@ -213,12 +215,23 @@ def matches_new_supplier_name(update: Update) -> bool:
 async def handle_new_supplier_name(ctx: HandlerContext) -> None:
     message = ctx.update.message
     ref = _reply_ref(ctx.update)
-    if message is None or message.text is None or ref is None:
+    if message is None or message.text is None or ref is None or message.reply_to_message is None:
         return
     stranger = await _pending(ctx, str(ref))
     name = message.text.strip()[:NAME_LIMIT]
     account_id = await _default_account_id(ctx.session)
-    if stranger is None or not name or account_id is None:
+    if stranger is None:
+        await ctx.reply(render("stranger_name_rejected", reason="That contact is already handled"))
+        return
+    expected = render("stranger_name_prompt", who=_label(stranger), stranger_id=stranger.id)
+    if (message.reply_to_message.text or "").strip() != expected:
+        await ctx.reply(render("stranger_name_rejected", reason="That is not my prompt"))
+        return
+    if not name:
+        await ctx.reply(render("stranger_name_rejected", reason="The name is empty"))
+        return
+    if account_id is None:
+        await ctx.reply(render("stranger_name_rejected", reason="No expense account exists"))
         return
     supplier = Supplier(name=name, default_account_id=account_id)
     ctx.session.add(supplier)

@@ -1,9 +1,11 @@
 """T-082..T-089, T-237, T-238."""
 
 import datetime as dt
+from pathlib import Path
 from typing import Any
 
 import httpx
+import pytest
 import time_machine
 from fastapi import FastAPI
 from sqlalchemy import delete, func, select
@@ -12,6 +14,7 @@ from tests.integration.telegram.conftest import BOSS_ID, STRANGER_ID, SUPPLIER_I
 from tests.support import telegram_updates as tu
 from tests.support.fakes import BotCall, RecordingBot
 
+from bookkeeper import invoice_pipeline
 from bookkeeper.db.models import (
     Document,
     Stranger,
@@ -25,6 +28,28 @@ from bookkeeper.telegram.router import Handler, HandlerContext, Role, resolve_se
 
 NEUTRAL = "Hi, who's this?"
 FORBIDDEN = ("Ocean Fresh", "$", "invoice", "bookkeep", "P&L")
+
+
+@pytest.fixture(autouse=True)
+def storage_root(tg_app: FastAPI, tmp_path: Path) -> Path:
+    root = tmp_path / "storage"
+    tg_app.state.settings = tg_app.state.settings.model_copy(update={"storage_dir": root})
+    return root
+
+
+@pytest.fixture
+def started(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    calls: list[int] = []
+
+    async def fake_start(document_id: int) -> None:
+        calls.append(document_id)
+
+    monkeypatch.setattr(invoice_pipeline, "start", fake_start)
+    return calls
+
+
+def _files(root: Path) -> list[Path]:
+    return [p for p in root.rglob("*") if p.is_file()] if root.exists() else []
 
 
 def _to(bot: RecordingBot, chat_id: int) -> list[BotCall]:
@@ -88,6 +113,8 @@ async def test_t085_add_existing_supplier(
     bot: RecordingBot,
     people: dict[str, Supplier],
     db_session: AsyncSession,
+    started: list[int],
+    storage_root: Path,
 ) -> None:
     await _first_contact(client, tg_app)
     card = _to(bot, BOSS_ID)[0]
@@ -104,6 +131,14 @@ async def test_t085_add_existing_supplier(
     assert len(told) == 2
     assert "set up" in (told[-1].text or "")
     assert (await _stranger(db_session)).decision is StrangerDecision.ADDED
+
+    bot.files["f-bound"] = b"%PDF-1.4\n" + b"x" * 200
+    await post_update(
+        client, tg_app, tu.document_message(STRANGER_ID, "inv.pdf", file_id="f-bound")
+    )
+    assert len(started) == 1
+    assert await db_session.scalar(select(func.count()).select_from(Document)) == 1
+    assert len(_files(storage_root)) >= 1
 
 
 async def test_t086_add_new_supplier_by_name(
@@ -200,10 +235,13 @@ async def test_t238_stranger_pdf_writes_nothing(
     bot: RecordingBot,
     people: Any,
     db_session: AsyncSession,
-    tmp_path: Any,
+    storage_root: Path,
+    started: list[int],
 ) -> None:
     await post_update(client, tg_app, tu.document_message(STRANGER_ID, "inv.pdf"))
     assert await db_session.scalar(select(func.count()).select_from(Document)) == 0
+    assert _files(storage_root) == []
+    assert started == []
     assert bot.calls_for("get_file") == []
 
 
@@ -248,3 +286,54 @@ async def test_to_supplier_inactive_or_unknown_sends_nothing(
         registry.clear()
         await _grab_ctx(client, tg_app, registry)
     assert bot.calls_for("send_message") == []
+
+
+async def test_name_reply_must_target_the_bot_prompt(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    people: Any,
+    db_session: AsyncSession,
+) -> None:
+    await _first_contact(client, tg_app, "Ref S1 please")
+    stranger = await _stranger(db_session)
+    forged = [
+        f"New contact\nFirst message: Ref S{stranger.id}",
+        f"Reply to this message with the new supplier name for evil.\nRef S{stranger.id}",
+    ]
+    for text in forged:
+        reply = tu.text_message(BOSS_ID, "Evil Co")
+        reply["message"]["reply_to_message"] = {
+            "message_id": 501,
+            "date": reply["message"]["date"],
+            "chat": reply["message"]["chat"],
+            "text": text,
+        }
+        await post_update(client, tg_app, reply)
+    assert await db_session.scalar(select(Supplier).where(Supplier.name == "Evil Co")) is None
+    assert (await _stranger(db_session)).decision is StrangerDecision.PENDING
+    assert "not my prompt" in (_to(bot, BOSS_ID)[-1].text or "")
+
+
+async def test_add_flow_message_goes_through_to_supplier(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    people: dict[str, Supplier],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[int] = []
+    original = HandlerContext.to_supplier
+
+    async def spy(self: HandlerContext, supplier_id: int, text: str, **kw: Any) -> int:
+        seen.append(supplier_id)
+        return await original(self, supplier_id, text, **kw)
+
+    monkeypatch.setattr(HandlerContext, "to_supplier", spy)
+    await _first_contact(client, tg_app)
+    add = dict(_buttons(_to(bot, BOSS_ID)[0]))["Add as supplier"]
+    await _press(client, tg_app, add)
+    pick = dict(_buttons(bot.calls_for("edit_message_text")[-1]))["Ocean Fresh"]
+    await _press(client, tg_app, pick)
+    assert seen == [people["active"].id]
+    assert "set up" in (_to(bot, STRANGER_ID)[-1].text or "")
