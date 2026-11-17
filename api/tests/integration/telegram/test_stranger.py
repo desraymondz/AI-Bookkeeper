@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 import time_machine
 from fastapi import FastAPI
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.integration.telegram.conftest import BOSS_ID, STRANGER_ID, post_update
 from tests.support import telegram_updates as tu
@@ -157,7 +157,7 @@ async def test_t088_ignored_and_blocked_stay_silent(
     db_session: AsyncSession,
 ) -> None:
     for label in ("Ignore", "Block"):
-        await db_session.execute(Stranger.__table__.delete())
+        await db_session.execute(delete(Stranger))
         bot.calls.clear()
         await _first_contact(client, tg_app)
         data = dict(_buttons(_to(bot, BOSS_ID)[0]))[label]
