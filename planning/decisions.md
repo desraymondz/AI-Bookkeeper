@@ -255,3 +255,14 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Decision: A re-sent identical file reuses the existing Document row (one row, one file on disk); the supplier still gets the ack and `invoice_pipeline.start(document_id)` runs again. T-096 counts as passed when exactly one row and one stored file exist and the pipeline is started with the same document id. P2-T08 handles a repeat start on the same document (F-013.5 duplicate rule with `CheckContext.current_invoice_id`) and records the re-send in the audit log with its sender.
 - Rejected: A nullable `duplicate_of_id` column with a second Document row (needs the sha256 uniqueness dropped; no PRD benefit).
 - Affects: planning/04-test-spec.md T-096 (reading only), planning/build-plan.md P2-T08
+
+## D-034 Document text for the suspicious-content check (F-013.10)
+- Date: 2026-11-18
+- Context: F-013.10 and T-233..T-235 scan "document text" for instruction-like content (D-025). After P2-T05..T07 the pipeline holds no document text: `Document` has no text column and `ExtractedInvoice` has no raw-text field, so `suspicious.py` scans only supplier name, invoice number and line descriptions plus the extractor's `suspicious_content` flag.
+- Decision:
+  - `ExtractedInvoice` gains `other_text: str | None` (all visible text not captured in other fields: headers, notes, footers, payment instructions), required key, nullable.
+  - `CheckContext` gains optional `document_text: str | None = None` at the end. P2-T08 fills it with the PDF text layer extracted in code (pypdf, no LLM) when present, joined with `other_text`.
+  - `suspicious.py` scans `document_text` in addition to the fields it scans today. The extractor flag stays as a second signal.
+  - P2-T08 owns these edits to `agents/schemas.py`, `agents/prompts/`, `ledger/checks/base.py` and `ledger/checks/suspicious.py`, and adds tests where the phrase appears only in a footer (`other_text`) and only in the PDF text layer.
+- Rejected: Asking the model to return the full raw text (doubles output tokens per invoice); relying on the extractor flag alone (the model under injection may not flag itself).
+- Affects: planning/build-plan.md P2-T08, T-233..T-235 (tick after P2-T08)
