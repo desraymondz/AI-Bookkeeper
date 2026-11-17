@@ -192,3 +192,55 @@ UI change: no
 > - Before reporting: (1) your T-xxx tests green in isolation; (2) `scripts/wt.sh integrate` (merges latest `preview`, runs `make sync`); (3) resolve conflicts, keeping both sides of route registry and lockfile changes; (4) `make verify` green on the integrated branch; (5) commit the merge. State the integrated `preview` SHA in the report.
 > - Register routers only by appending to `api/src/bookkeeper/routes.py`. Integration tests use `tests/support` (real `create_app`, stub boss, factories through the ledger service); no task-local app builders, fakes or raw journal inserts.
 > - New dependencies: add them and commit the updated lockfile in the same commit; `make deps-check` must pass.
+
+## P2 full cards
+All cards: Depends on P2-T00. Verify = isolated `uv run pytest <scope>` first, then the D-031 gate (`scripts/wt.sh integrate`, `make verify`; plus `make e2e` for UI cards). Integration tests use `tests/support` fixtures named below; Telegram tests post real update JSON to `/telegram/webhook` through `client` with `RecordingBot` injected.
+
+### P2-T01  Webhook, routing, notify, templates
+Feature: F-009, G-5 (T-014)     Tests: T-014, T-078, T-079, T-080, T-081
+Owns: api/src/bookkeeper/telegram/{webhook,app,router,notify,keyboards}.py, api/src/bookkeeper/templates/, tests/{unit,integration}/telegram/
+Registry: append webhook router to `PUBLIC_ROUTERS`. Exposes `notify.to_boss(...)`, `notify.to_sender(...)` (the only outbound path) and a handler registry other tasks append to (`telegram/handlers/__init__.py` list).
+Fixtures: client, RecordingBot, telegram_updates, settings_row, supplier.
+
+### P2-T02  Linking, suppliers and users API
+Feature: F-006, F-007, F-008 (api/bot)     Tests: T-058..T-062, T-064, T-068..T-070, T-075..T-077
+Owns: api/src/bookkeeper/web_api/{suppliers,users,links}.py, api/src/bookkeeper/telegram/handlers/start.py, tests
+Registry: append suppliers, users, links routers to `PROTECTED_ROUTERS`; append `/start` handler.
+Also: D-030 open item, cash-flow payables by subtype (`trade_payable` on Accounts Payable in coa.py, reports/statements.py rule) with T-202 still green.
+
+### P2-T03  Stranger handling
+Feature: F-010     Tests: T-082..T-089, T-237, T-238
+Owns: api/src/bookkeeper/telegram/handlers/stranger.py, templates/stranger*, tests
+Registry: append stranger handler and its callback handler.
+
+### P2-T04  Invoice intake and storage
+Feature: F-011     Tests: T-090..T-096, T-245
+Owns: api/src/bookkeeper/storage/, api/src/bookkeeper/telegram/handlers/supplier_docs.py, api/src/bookkeeper/web_api/documents.py (boss-only file download), tests
+Registry: append documents router to `PROTECTED_ROUTERS`; append supplier document handler. Hands off to `invoice_pipeline.start(document_id)` (stub interface until P2-T08; record calls in tests).
+
+### P2-T05  Checks F-013.1 to F-013.5
+Feature: F-013     Tests: T-105..T-116, T-125, T-240, T-036 (second half)
+Owns: api/src/bookkeeper/ledger/checks/{__init__,base,known_supplier,arithmetic,gst,balanced,duplicate}.py, tests
+`checks/__init__.py` defines `CheckResult`, `CheckContext`, and the ordered `CHECKS` list; P2-T06 appends.
+
+### P2-T06  Checks F-013.6 to F-013.10
+Feature: F-013     Tests: T-117..T-124, T-233..T-235, T-239
+Owns: api/src/bookkeeper/ledger/checks/{revision,price_change,period,sanity,suspicious}.py, tests
+Uses the `CheckContext` from P2-T05; if P2-T05 is not merged when this starts, both tasks code against the interface in this card: `CheckContext(session, settings, supplier, sender_user, invoice: ExtractedInvoice, document, proposed_entry)`, `CheckResult(code, passed, detail)`, each check `async def run(ctx) -> CheckResult`.
+
+### P2-T07  Gemini client, extraction, proposal
+Feature: F-012, G-7     Tests: T-098, T-100..T-104, T-044
+Owns: api/src/bookkeeper/agents/{gemini,extract,propose,schemas}.py, agents/prompts/, tests
+Implements `LLMClient` from P2-T00 with google-genai; `ExtractedInvoice` schema in agents/schemas.py (shared with P2-T05/T06 through the interface above). Tests use FakeLLMClient only.
+
+### P2-T08  Invoice LangGraph and approvals
+Feature: F-014, F-015, G-4, G-7     Tests: T-010, T-011 (invoice path), T-018, T-019, T-126, T-127, T-129..T-142, T-241
+Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/invoice_pipeline.py, api/src/bookkeeper/telegram/handlers/approvals.py, templates/invoice*, tests
+Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
+
+### P2-T09  Web suppliers, users, Connect Telegram
+Feature: F-006..F-008 (web)     Tests: T-057, T-063, T-065..T-067, T-071..T-074
+Owns: web/src/features/{suppliers,users,telegram}/, routes for /settings/{suppliers,users,telegram}, web/e2e/{suppliers,users,telegram}.spec.ts
+Depends on P2-T02. Uses web/e2e/support only.
+
+Batches: B4 = T01 ‖ T05 ‖ T06 ‖ T07; B5 = T02 ‖ T03 ‖ T04; B6 = T08 ‖ T09.
