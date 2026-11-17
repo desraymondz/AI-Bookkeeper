@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bookkeeper.db.models import User, UserRole, UserStatus
+from bookkeeper.db.models import Supplier, User, UserRole, UserStatus
 from bookkeeper.telegram.app import BotLike
 
 if TYPE_CHECKING:
     from bookkeeper.telegram.router import Sender
+
+log = logging.getLogger(__name__)
 
 
 async def boss_chat_id(session: AsyncSession) -> int | None:
@@ -31,6 +34,35 @@ async def to_boss(
     if chat_id is None:
         return None
     return await bot.send_message(chat_id, text, reply_markup=reply_markup)
+
+
+async def to_supplier(
+    session: AsyncSession,
+    bot: BotLike,
+    supplier_id: int,
+    text: str,
+    *,
+    reply_markup: Any = None,
+) -> int:
+    chat_ids = (
+        await session.scalars(
+            select(User.telegram_user_id)
+            .join(Supplier, User.supplier_id == Supplier.id)
+            .where(
+                User.supplier_id == supplier_id,
+                User.role == UserRole.SUPPLIER,
+                User.status == UserStatus.ACTIVE,
+                User.telegram_user_id.is_not(None),
+                Supplier.active.is_(True),
+            )
+        )
+    ).all()
+    targets = [chat_id for chat_id in chat_ids if chat_id is not None]
+    for chat_id in targets:
+        await bot.send_message(chat_id, text, reply_markup=reply_markup)
+    if not targets:
+        log.warning("no active linked user for supplier %s", supplier_id)
+    return len(targets)
 
 
 async def to_sender(bot: BotLike, sender: Sender, text: str, *, reply_markup: Any = None) -> Any:

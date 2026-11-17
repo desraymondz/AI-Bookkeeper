@@ -8,7 +8,7 @@ import time_machine
 from fastapi import FastAPI
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from tests.integration.telegram.conftest import BOSS_ID, STRANGER_ID, post_update
+from tests.integration.telegram.conftest import BOSS_ID, STRANGER_ID, SUPPLIER_ID, post_update
 from tests.support import telegram_updates as tu
 from tests.support.fakes import BotCall, RecordingBot
 
@@ -21,7 +21,7 @@ from bookkeeper.db.models import (
     UserRole,
 )
 from bookkeeper.telegram.handlers.stranger import pending_strangers
-from bookkeeper.telegram.router import Role, resolve_sender
+from bookkeeper.telegram.router import Handler, HandlerContext, Role, resolve_sender
 
 NEUTRAL = "Hi, who's this?"
 FORBIDDEN = ("Ocean Fresh", "$", "invoice", "bookkeep", "P&L")
@@ -205,3 +205,46 @@ async def test_t238_stranger_pdf_writes_nothing(
     await post_update(client, tg_app, tu.document_message(STRANGER_ID, "inv.pdf"))
     assert await db_session.scalar(select(func.count()).select_from(Document)) == 0
     assert bot.calls_for("get_file") == []
+
+
+async def _grab_ctx(
+    client: httpx.AsyncClient, app: FastAPI, registry: list[Handler]
+) -> HandlerContext:
+    captured: list[HandlerContext] = []
+
+    async def grab(ctx: HandlerContext) -> None:
+        captured.append(ctx)
+        await ctx.to_supplier(captured_ids["supplier"], "ping")
+
+    registry.append(Handler("grab", frozenset(Role), lambda _u: True, grab))
+    await post_update(client, app, tu.text_message(BOSS_ID, "x"))
+    return captured[0]
+
+
+captured_ids: dict[str, int] = {}
+
+
+async def test_to_supplier_reaches_linked_chat_only(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    registry: list[Handler],
+    people: dict[str, Supplier],
+) -> None:
+    captured_ids["supplier"] = people["active"].id
+    await _grab_ctx(client, tg_app, registry)
+    assert [(c.chat_id, c.text) for c in bot.calls_for("send_message")] == [(SUPPLIER_ID, "ping")]
+
+
+async def test_to_supplier_inactive_or_unknown_sends_nothing(
+    client: httpx.AsyncClient,
+    tg_app: FastAPI,
+    bot: RecordingBot,
+    registry: list[Handler],
+    people: dict[str, Supplier],
+) -> None:
+    for supplier_id in (people["inactive"].id, 999_999):
+        captured_ids["supplier"] = supplier_id
+        registry.clear()
+        await _grab_ctx(client, tg_app, registry)
+    assert bot.calls_for("send_message") == []

@@ -65,6 +65,11 @@ class HandlerContext:
     async def to_boss(self, text: str, *, reply_markup: Any = None) -> Any | None:
         return await notify.to_boss(self.session, self._bot, text, reply_markup=reply_markup)
 
+    async def to_supplier(self, supplier_id: int, text: str, *, reply_markup: Any = None) -> int:
+        return await notify.to_supplier(
+            self.session, self._bot, supplier_id, text, reply_markup=reply_markup
+        )
+
     async def edit(self, message_id: int, text: str, *, reply_markup: Any = None) -> Any:
         return await notify.edit_for_sender(
             self._bot, self.sender, message_id, text, reply_markup=reply_markup
