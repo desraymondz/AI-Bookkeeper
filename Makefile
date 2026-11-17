@@ -4,6 +4,16 @@
 API := cd api &&
 WEB := cd web &&
 
+ifdef QUIET
+PYTEST_FLAGS := -q --no-header --tb=short -rfE
+JS_REPORTER := --reporter=dot
+BUILD := out=$$(pnpm build 2>&1) || { echo "$$out" | tail -n 60; exit 1; }
+else
+PYTEST_FLAGS :=
+JS_REPORTER :=
+BUILD := pnpm build
+endif
+
 setup:
 	cp -n .env.example .env || true
 	$(API) uv sync
@@ -18,7 +28,7 @@ deps-check:
 	$(WEB) pnpm install --frozen-lockfile --lockfile-only
 
 verify: deps-check lint typecheck test
-	$(WEB) pnpm build
+	$(WEB) $(BUILD)
 
 hooks:
 	git config core.hooksPath scripts/git-hooks
@@ -57,11 +67,11 @@ typecheck:
 	$(WEB) pnpm typecheck
 
 test:
-	$(API) uv run pytest
-	$(WEB) pnpm test
+	$(API) uv run pytest $(PYTEST_FLAGS)
+	$(WEB) pnpm test $(JS_REPORTER)
 
 e2e:
-	$(WEB) pnpm e2e
+	$(WEB) pnpm e2e $(JS_REPORTER)
 
 eval:
 	$(API) uv run bk eval
