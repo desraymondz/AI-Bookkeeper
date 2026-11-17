@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI
 
 from bookkeeper.auth.wiring import include_protected
+from bookkeeper.telegram import webhook as telegram_webhook
 from bookkeeper.web_api import accounts as accounts_api
 from bookkeeper.web_api import config as config_api
 from bookkeeper.web_api import ledger as ledger_api
@@ -10,7 +11,7 @@ from bookkeeper.web_api import settings as settings_api
 # See planning/decisions.md#D-031
 PUBLIC_ROUTERS: list[APIRouter] = [
     config_api.router,
-    # Telegram webhook router: see planning/decisions.md#D-031
+    telegram_webhook.router,
 ]
 
 PROTECTED_ROUTERS: list[APIRouter] = [
