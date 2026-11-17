@@ -63,21 +63,20 @@ ITEMS: dict[str, tuple[Item, ...]] = {
     ),
 }
 
-# Quantities per invoice, cycled by invoice sequence number, one tuple per item.
+# See planning/01-prd.md#f-030-seed-data-and-eval-harness
 QUANTITIES: dict[str, tuple[tuple[int, int, int], ...]] = {
     "ocean": ((10, 6, 4), (12, 5, 3), (8, 7, 5), (11, 6, 2), (9, 8, 4), (10, 5, 6)),
     "dairy": ((40, 5, 6), (36, 4, 8), (44, 6, 5), (38, 5, 7), (42, 4, 6), (40, 6, 4)),
     "packco": ((1500, 1500, 800), (1800, 1800, 1000), (1600, 1600, 900)),
 }
 
-# (supplier key, invoice number) -> payment fraction of the bill total; absent means paid in full
-# on the due date if that date is before TODAY, else left open.
+# See planning/01-prd.md#f-030-seed-data-and-eval-harness
 UNPAID: frozenset[tuple[str, str]] = frozenset(
     {("ocean", "INV-1010"), ("dairy", "DB-2004"), ("packco", "PC-3003")}
 )
 PARTIAL: dict[tuple[str, str], Decimal] = {("ocean", "INV-1014"): Decimal("0.50")}
 
-# Gross (GST-inclusive) takings by weekday, Monday first.
+# See planning/01-prd.md#f-030-seed-data-and-eval-harness
 WEEKDAY_BASE: tuple[int, ...] = (780, 820, 860, 900, 1180, 1560, 1420)
 DAY_STEP = Decimal("13.40")
 CASH_PERCENT: tuple[int, ...] = (25, 30, 35, 40)

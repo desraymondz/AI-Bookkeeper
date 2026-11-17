@@ -371,7 +371,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-209 | F-030.1 | integration | Given an empty database When the seed command runs Then settings, chart of accounts, 3 suppliers (seafood, dairy, packaging), opening balances, 3 months of clean invoices, daily sales, payments and 1 asset exist and the TB balances | [x] |
+| T-209 | F-030.1 | integration | Given an empty database When the seed command runs Then settings, chart of accounts, 3 suppliers (seafood, dairy, packaging), opening balances, 3 months of clean invoices, daily sales, payments and 1 asset exist and the TB balances | [ ] |
 | T-210 | F-030.2 | eval | Given an exact duplicate file of a posted Ocean Fresh invoice When run Then held for boss, failed check Duplicate (same sha256), card names the earlier entry; no new posting | [ ] |
 | T-211 | F-030.2 | eval | Given a new file resending Ocean Fresh INV-1043 with the same amounts When run Then held for boss, failed check Duplicate (same supplier + invoice number) | [ ] |
 | T-212 | F-030.2 | eval | Given a revised Ocean Fresh INV-1043 with total 470.88 When run Then held for boss, failed check Revision, card shows old 436.00 vs new 470.88 | [ ] |
