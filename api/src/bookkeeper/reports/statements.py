@@ -15,7 +15,7 @@ COGS_SUBTYPE = "cogs"
 CASH_SUBTYPE = "cash"
 FIXED_ASSET_SUBTYPE = "fixed_asset"
 CURRENT_LIABILITY_SUBTYPE = "current_liability"
-PAYABLE_NAME_MARKER = "payable"
+TRADE_PAYABLE_SUBTYPE = "trade_payable"
 
 
 class StatementLine(BaseModel):
@@ -171,11 +171,7 @@ class CashFlow(BaseModel):
 
 
 def _is_payable(account: Account) -> bool:
-    return (
-        account.type == AccountType.LIABILITY
-        and account.subtype == CURRENT_LIABILITY_SUBTYPE
-        and PAYABLE_NAME_MARKER in account.name.lower()
-    )
+    return account.type == AccountType.LIABILITY and account.subtype == TRADE_PAYABLE_SUBTYPE
 
 
 def _cash_balance(accounts: list[Account], by_account: dict[int, Movement]) -> Decimal:

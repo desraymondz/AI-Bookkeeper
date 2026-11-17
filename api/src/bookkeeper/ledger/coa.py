@@ -22,7 +22,7 @@ DEFAULT_CHART: tuple[DefaultAccount, ...] = (
     DefaultAccount("1200", "Input GST", AccountType.ASSET, "current_asset"),
     DefaultAccount("1500", "Equipment", AccountType.ASSET, "fixed_asset"),
     DefaultAccount("1510", "Accumulated Depreciation", AccountType.CONTRA_ASSET, "fixed_asset"),
-    DefaultAccount("2000", "Accounts Payable", AccountType.LIABILITY, "current_liability"),
+    DefaultAccount("2000", "Accounts Payable", AccountType.LIABILITY, "trade_payable"),
     DefaultAccount("2100", "Output GST", AccountType.LIABILITY, "current_liability"),
     DefaultAccount("3000", "Owner's Capital", AccountType.EQUITY, "capital"),
     DefaultAccount("3100", "Retained Earnings", AccountType.EQUITY, "retained_earnings"),
