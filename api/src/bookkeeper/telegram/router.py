@@ -78,6 +78,10 @@ class HandlerContext:
     async def answer_callback(self, callback_query_id: str, text: str | None = None) -> Any:
         return await notify.answer_callback(self._bot, callback_query_id, text)
 
+    async def download(self, file_id: str) -> bytes:
+        file = await self._bot.get_file(file_id)
+        return bytes(await file.download_as_bytearray())
+
 
 @dataclass(frozen=True, slots=True)
 class Handler:

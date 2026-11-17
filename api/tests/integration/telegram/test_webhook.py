@@ -263,6 +263,7 @@ async def test_context_has_no_path_to_arbitrary_chats(
     public = {name for name in dir(ctx) if not name.startswith("_")}
     assert public == {
         "answer_callback",
+        "download",
         "edit",
         "reply",
         "sender",

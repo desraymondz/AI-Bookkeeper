@@ -154,13 +154,13 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-090 | F-011.1 | integration | Given an active supplier When they send a PDF, a JPG, a PNG and a HEIC each under 20 MB Then all four are accepted and stored | [ ] |
-| T-091 | F-011.1 | integration | Given an active supplier When they send a `.docx` or a `.zip` Then they get "please send PDF or photo" and nothing is stored or extracted | [ ] |
-| T-092 | F-011.1 | integration | Given an active supplier When they send a 21 MB PDF Then it is not stored or extracted and they get a short reply | [ ] |
-| T-093 | F-011.1 | integration | Given a file named `invoice.pdf` whose content is not a PDF (for example an executable) When sent Then it is treated as the wrong type and not stored or extracted | [ ] |
-| T-094 | F-011.2 | integration | Given Ocean Fresh sends a PDF on 18 Nov 2026 When stored Then the file is under the storage folder by date and supplier, and its record holds path, sha256, mime, size, sender and received time | [ ] |
-| T-095 | F-011.3 | e2e | Given Ocean Fresh sends a PDF When it is received Then they get "Got it, thanks" (or similar short ack) within 10 seconds | [ ] |
-| T-096 | F-011.4 | integration | Given a file already received When the identical file (same sha256) arrives again Then no second copy is stored and the new document record links to the earlier one | [ ] |
+| T-090 | F-011.1 | integration | Given an active supplier When they send a PDF, a JPG, a PNG and a HEIC each under 20 MB Then all four are accepted and stored | [x] |
+| T-091 | F-011.1 | integration | Given an active supplier When they send a `.docx` or a `.zip` Then they get "please send PDF or photo" and nothing is stored or extracted | [x] |
+| T-092 | F-011.1 | integration | Given an active supplier When they send a 21 MB PDF Then it is not stored or extracted and they get a short reply | [x] |
+| T-093 | F-011.1 | integration | Given a file named `invoice.pdf` whose content is not a PDF (for example an executable) When sent Then it is treated as the wrong type and not stored or extracted | [x] |
+| T-094 | F-011.2 | integration | Given Ocean Fresh sends a PDF on 18 Nov 2026 When stored Then the file is under the storage folder by date and supplier, and its record holds path, sha256, mime, size, sender and received time | [x] |
+| T-095 | F-011.3 | e2e | Given Ocean Fresh sends a PDF When it is received Then they get "Got it, thanks" (or similar short ack) within 10 seconds | [x] |
+| T-096 | F-011.4 | integration | Given a file already received When the identical file (same sha256) arrives again Then no second copy is stored and the new document record links to the earlier one | [x] |
 
 ### F-012 Extraction and proposed entry
 
@@ -414,7 +414,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-242 | F-021.2 | unit | Given cost 1,000.00, salvage 0.00, life 3 months When depreciation runs each month Then amounts are 333.33, 333.33, 333.34 and the total is 1,000.00 | [ ] |
 | T-243 | F-016.2 | e2e | Given the boss sends "sales today 1,850, cash 420, card 1,400" When parsed Then the bot asks which figure is right, shows no Confirm button, and nothing posts | [ ] |
 | T-244 | F-022.2 | integration | Given every check passes except two days with no sales When close is prepared Then the missing days are listed and Approve close is still offered | [ ] |
-| T-245 | F-011.1 | e2e | Given a supplier sends a 25 MB PDF When handled Then they get a short reply saying the file is too big and to send under 20 MB, and nothing is stored | [ ] |
+| T-245 | F-011.1 | e2e | Given a supplier sends a 25 MB PDF When handled Then they get a short reply saying the file is too big and to send under 20 MB, and nothing is stored | [x] |
 
 ## Coverage
 
