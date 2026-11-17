@@ -44,6 +44,7 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B4 | P2-T06 checks F-013.6..10 | Re-integrated on T05/T07; verifier PASS; merged; T-117..T-125, T-239 ticked; T-233..T-235 held for D-034 (document text gap, fixed in P2-T08). B4 complete. |
 | 2026-11-18 | B5 | P2-T02 linking, suppliers, users API | Verifier PASS (scoped + shared infra), merged; migration 0003 trade_payable on account 2000 (D-030 closed); T-058..T-062, T-064, T-068..T-070, T-075..T-077, T-202 ticked; agents/tool_gate.py for P2-T08; preview api 371 web 26 |
 | 2026-11-18 | B5 | P2-T03 stranger handling | Pre-verify fix (ctx._bot), verifier FAIL (bypass still present despite report, Ref S<n> spoof, silent rejections), fix round 2, re-verify PASS, merged; T-082..T-089, T-238 ticked; T-237 held for P3-T04 recap. B5 complete. B6 (P2-T08, P2-T09) building. |
+| 2026-11-18 | B6 | P2-T09 web suppliers, users, Connect Telegram | Verifier PASS with browser walk-through, merged; T-057, T-063, T-065..T-067, T-071..T-074 ticked; T-024 web flake fixed (MSW in-flight wait); evidence in planning/evidence/P2-T09/ |
 
 ## P1 phase summary
 - Built: API and web scaffolds, ledger posting service and periods, Google auth and sessions, settings and chart of accounts, reports service, web sign-in/setup/settings/accounts, demo cafe seed.
