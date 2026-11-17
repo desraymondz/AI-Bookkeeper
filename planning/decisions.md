@@ -224,3 +224,16 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Rejected: Rolling 30/90/365-day windows (harder to compare month to month).
 - Open: cash flow finds payables by the word "payable" in the account name; move to a subtype rule before boss-added liability accounts matter (carry forward to P2-T02).
 - Affects: 01-prd.md F-024.2, F-027, F-023.1; api/src/bookkeeper/reports/
+
+## D-031 Integration-first workflow for P2 onward
+- Date: 2026-11-18
+- Context: Every P1 failure came from parallel tasks meeting on `preview` (auth wiring, ORM guard vs test data, stub route clashes, missing deps in a checkout). See planning/ai-log.md.
+- Decision:
+  - One route registry, `api/src/bookkeeper/routes.py` (`PUBLIC_ROUTERS`, `PROTECTED_ROUTERS`, `register_routes(app)`); `main.py` only calls it. Builders add their router with a one-line append; integration tests always use the real `create_app`.
+  - One shared test harness, `api/tests/support/` (test app and clients with stub boss, factories that post through the ledger service, fake LLM client, recording fake Telegram bot, Telegram update builders) and `web/e2e/support/` (DB reset, test login, API seeding). Task-local copies are not allowed.
+  - Dependencies: builders may add packages in their branch but must commit the lockfile. `make sync` (`uv sync --locked`, `pnpm install --frozen-lockfile`) runs after every worktree creation and every merge; a repo git hook runs it automatically when a lockfile changes; `make deps-check` fails if a lockfile is stale.
+  - Worktrees via `scripts/wt.sh` (`new`, `integrate`, `sync-all`); e2e ports and database name derive from the worktree so parallel runs do not collide.
+  - Builder gate before reporting: isolated tests for its T-xxx green, then merge latest `preview` into the task branch, resolve conflicts, `make sync`, full `make verify` green, commit. The report states the integrated `preview` SHA.
+  - Orchestrator merges only if `preview` is an ancestor of the task branch; otherwise the branch goes back for re-integration. Verifiers review the integrated branch and run `make verify`.
+- Rejected: Orchestrator-only integration at merge time (what P1 did).
+- Affects: planning/build-plan.md (P2 conventions, P2-T00), AGENTS.md (git workflow, commands)

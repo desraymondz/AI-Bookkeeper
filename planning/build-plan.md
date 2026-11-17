@@ -178,3 +178,17 @@ UI change: no
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
 - P2-T02: switch cash-flow payables detection from account name to a subtype (D-030 open item).
+
+## P2 onward: integration rules (D-031)
+P2-T00 runs first and alone; every later P2 card assumes its harness.
+
+### P2-T00  Integration harness
+Feature: none (process, D-031)     Tests: harness self-tests only
+Owns files: api/src/bookkeeper/routes.py, api/src/bookkeeper/main.py, api/src/bookkeeper/agents/llm.py (LLMClient Protocol only), api/tests/support/, api/tests/conftest.py, migration of existing task-local helpers (tests/integration/settings/app.py, auth conftest, reports helpers) onto the harness, web/e2e/support/, web/playwright.config.ts, Makefile, scripts/wt.sh, scripts/git-hooks/, AGENTS.md (commands, git workflow)
+Verify: make deps-check && make verify && make e2e
+UI change: no
+
+### Builder rules, added for P2 onward
+> - Before reporting: (1) your T-xxx tests green in isolation; (2) `scripts/wt.sh integrate` (merges latest `preview`, runs `make sync`); (3) resolve conflicts, keeping both sides of route registry and lockfile changes; (4) `make verify` green on the integrated branch; (5) commit the merge. State the integrated `preview` SHA in the report.
+> - Register routers only by appending to `api/src/bookkeeper/routes.py`. Integration tests use `tests/support` (real `create_app`, stub boss, factories through the ledger service); no task-local app builders, fakes or raw journal inserts.
+> - New dependencies: add them and commit the updated lockfile in the same commit; `make deps-check` must pass.
