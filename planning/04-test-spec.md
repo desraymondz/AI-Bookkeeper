@@ -29,9 +29,9 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-017 | G-6 | integration | Given no currency or timezone set at first run When settings are created Then they default to SGD and Asia/Singapore | [x] |
 | T-018 | G-7 | integration | Given a clean invoice is auto-posted When the audit log is read Then it has rows for extraction (with model name and document ref), each check result, the posting and the FYI message sent, each with input refs and result | [x] |
 | T-019 | G-7 | integration | Given the boss approves, edits or rejects an item and the bot sends the supplier a note When the audit log is read Then each action is recorded with actor Boss or Agent, refs and result | [x] |
-| T-020 | G-8 | integration | Given a signed-in boss When the web API is asked to create, change or delete journal entries, lines, bills, payments or periods Then every such request is refused and nothing changes | [ ] |
+| T-020 | G-8 | integration | Given a signed-in boss When the web API is asked to create, change or delete journal entries, lines, bills, payments or periods Then every such request is refused and nothing changes | [x] |
 | T-021 | G-8 | integration | Given a signed-in boss When the web API saves settings, users, suppliers, assets, opening balances or link tokens Then each save succeeds | [ ] |
-| T-022 | G-8 | browser | Given the boss on every `/accounting/*` tab and the entry detail sheet When the page is inspected Then there are no edit, delete or add controls for books data | [ ] |
+| T-022 | G-8 | browser | Given the boss on every `/accounting/*` tab and the entry detail sheet When the page is inspected Then there are no edit, delete or add controls for books data | [x] |
 
 ### F-001 Boss sign-in
 
@@ -315,15 +315,15 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-183 | F-024.1 | browser | Given posted entries of every source When `/accounting/journal` loads Then columns are Date, Entry no., Description, Account, Debit, Credit, Source, Status and source badges read Auto, Approved, Manual, Adjusting, Opening, Reversal | [ ] |
+| T-183 | F-024.1 | browser | Given posted entries of every source When `/accounting/journal` loads Then columns are Date, Entry no., Description, Account, Debit, Credit, Source, Status and source badges read Auto, Approved, Manual, Adjusting, Opening, Reversal | [x] |
 | T-184 | F-024.1 | browser | Given 10,000 journal lines When `/accounting/journal?range=last-12-months` loads Then the table is shown within 2 s | [ ] |
-| T-185 | F-024.2 | browser | Given `/accounting/journal` When each preset (This month, Last month, Last 3 months, Year to date, Last 12 months) is applied Then the URL range param and the filter label update and only entries in that range show | [ ] |
+| T-185 | F-024.2 | browser | Given `/accounting/journal` When each preset (This month, Last month, Last 3 months, Year to date, Last 12 months) is applied Then the URL range param and the filter label update and only entries in that range show | [x] |
 | T-186 | F-024.2 | browser | Given Custom range When From is after To Then an inline error shows and Apply is disabled | [ ] |
-| T-187 | F-024.2 | browser | Given financial year start month April When Year to date is applied on 18 Nov 2026 Then the label reads 1 Apr 2026 to 18 Nov 2026 | [ ] |
-| T-188 | F-024.3 | browser | Given INV-1043's entry JE-00042 When its row is clicked Then the sheet opens at `/accounting/journal/JE-00042` showing lines with totals, all checks (failed first), the invoice PDF preview, the audit trail and any reversal link | [ ] |
-| T-189 | F-024.3 | browser | Given a manual entry When its sheet is opened Then Checks reads "No automated checks for manual entries." and the Document section is hidden | [ ] |
+| T-187 | F-024.2 | browser | Given financial year start month April When Year to date is applied on 18 Nov 2026 Then the label reads 1 Apr 2026 to 18 Nov 2026 | [x] |
+| T-188 | F-024.3 | browser | Given INV-1043's entry JE-00042 When its row is clicked Then the sheet opens at `/accounting/journal/JE-00042` showing lines with totals, all checks (failed first), the invoice PDF preview, the audit trail and any reversal link | [x] |
+| T-189 | F-024.3 | browser | Given a manual entry When its sheet is opened Then Checks reads "No automated checks for manual entries." and the Document section is hidden | [x] |
 | T-190 | F-024.3 | browser | Given a reversed entry When its sheet is opened Then it shows "Reversed by JE-00057" and clicking it swaps to JE-00057 which shows "Reverses JE-00042" | [ ] |
-| T-191 | F-024.4 | browser | Given any filtered range When the Journal tab loads Then the footer shows Total debit equal to Total credit | [ ] |
+| T-191 | F-024.4 | browser | Given any filtered range When the Journal tab loads Then the footer shows Total debit equal to Total credit | [x] |
 
 ### F-025 Accounting: General ledger tab
 
@@ -337,7 +337,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-195 | F-026.1 | browser | Given range ending 30 Nov 2026 When `/accounting/trial-balance` loads Then the label reads "As at 30 Nov 2026", only non-zero accounts appear in Debit or Credit, and the totals row shows equal totals | [ ] |
+| T-195 | F-026.1 | browser | Given range ending 30 Nov 2026 When `/accounting/trial-balance` loads Then the label reads "As at 30 Nov 2026", only non-zero accounts appear in Debit or Credit, and the totals row shows equal totals | [x] |
 | T-196 | F-026.2 | browser | Given Nov 2026 closed with 200.00 depreciation When `/accounting/adjusted-trial-balance` loads for Nov Then Unadjusted columns exclude it, Adjustments show Dr Depreciation Expense 200.00 / Cr Accumulated Depreciation 200.00, and Adjusted columns include it | [ ] |
 | T-197 | F-026.2 | browser | Given an open period When the adjusted trial balance tab loads Then the note "Adjustments post at month-end close." is shown | [ ] |
 | T-198 | F-026.3 | browser | Given a test fixture where TB totals differ by 12.50 When `/accounting/trial-balance` loads Then a warning row reads "Totals do not match. Difference: S$12.50." and is announced as an alert | [ ] |
@@ -346,8 +346,8 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-199 | F-027.1 | browser | Given seeded Oct data When `/accounting/pnl?range=last-month` loads Then it shows Revenue, COGS, Gross profit, Operating expenses, Operating profit, Other items, Net profit, with Gross profit = Revenue - COGS and Net profit consistent with the lines | [ ] |
-| T-200 | F-027.2 | browser | Given any range When `/accounting/balance-sheet` loads Then it shows Assets, Liabilities, Equity as at range end and the check line "Assets = Liabilities + Equity" reads Balanced | [ ] |
+| T-199 | F-027.1 | browser | Given seeded Oct data When `/accounting/pnl?range=last-month` loads Then it shows Revenue, COGS, Gross profit, Operating expenses, Operating profit, Other items, Net profit, with Gross profit = Revenue - COGS and Net profit consistent with the lines | [x] |
+| T-200 | F-027.2 | browser | Given any range When `/accounting/balance-sheet` loads Then it shows Assets, Liabilities, Equity as at range end and the check line "Assets = Liabilities + Equity" reads Balanced | [x] |
 | T-201 | F-027.3 | browser | Given Oct 2026 When `/accounting/cash-flow?range=last-month` loads Then it shows net profit, depreciation add-back, change in payables, other working capital, investing, financing, net change, and the check line "Net change equals change in cash and bank" passes | [ ] |
 | T-202 | F-027.3 | integration | Given seeded months When cash flow is computed for each month Then net change equals closing minus opening of Cash + Bank exactly | [x] |
 

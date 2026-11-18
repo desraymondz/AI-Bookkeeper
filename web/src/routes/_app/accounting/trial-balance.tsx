@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PlaceholderSection } from '@/components/placeholder-page'
+import { TrialBalancePage } from '@/features/books/statements'
 
 // See planning/02-design.md#accounting-page (F-026.1)
 export const Route = createFileRoute('/_app/accounting/trial-balance')({
-  component: () => <PlaceholderSection title="Trial balance" />,
+  component: TrialBalancePage,
 })

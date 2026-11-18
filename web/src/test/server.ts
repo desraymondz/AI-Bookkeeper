@@ -30,6 +30,15 @@ export const handlers = [
   http.get('*/api/links/boss', () =>
     HttpResponse.json({ connected: false, username: null, display_name: null, linked_at: null }),
   ),
+  http.get('*/api/journal', () =>
+    HttpResponse.json({
+      start: '2026-11-01',
+      end: '2026-11-18',
+      entries: [],
+      total_debit: '0.00',
+      total_credit: '0.00',
+    }),
+  ),
   http.get('*/api/settings', () =>
     HttpResponse.json({ configured: true, settings: TEST_SETTINGS, defaults: TEST_DEFAULTS }),
   ),

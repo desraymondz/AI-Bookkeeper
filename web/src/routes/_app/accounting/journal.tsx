@@ -1,7 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { PlaceholderSection } from '@/components/placeholder-page'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { JournalPage } from '@/features/books/journal-page'
 
 // See planning/02-design.md#accounting-page (F-024)
 export const Route = createFileRoute('/_app/accounting/journal')({
-  component: () => <PlaceholderSection title="Journal" />,
+  component: () => (
+    <>
+      <JournalPage />
+      <Outlet />
+    </>
+  ),
 })
