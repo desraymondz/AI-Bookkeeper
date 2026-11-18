@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P2 Telegram and invoice pipeline DONE (2026-11-18): phase regression PASS (api 428, web 37, e2e 33). P1 DONE. Next: P3 Boss operations (write full cards, then B7). Subagents run on Sonnet 5.5 per owner. Token rules D-032 (scoped verifiers, QUIET output, rules files).
+Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. Next: S-1 end-to-end demo test, then S-2 to S-6 in planning/build-plan.md#demo-sprint-d-036. P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
 
 | Doc | Status |
 | --- | --- |
@@ -9,7 +9,7 @@ Phase: Build P2 Telegram and invoice pipeline DONE (2026-11-18): phase regressio
 | 02-design.md | Locked |
 | 03-tech-stack.md | Locked (all models Flash-Lite via D-016) |
 | 04-test-spec.md | Locked |
-| decisions.md | D-001 to D-025 |
+| decisions.md | D-001 to D-036 |
 | ai-log.md | 4 corrections logged |
 | AGENTS.md, CLAUDE.md, .claude/ hooks | Written |
 
@@ -62,3 +62,6 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 - Gaps carried: no single end-to-end P2 demo test (P3-T00); revoked users vanish on reload (decide in P3); Stop hook 45s timeout trips under parallel load (owner to decide); seed.ts raw journal insert (replace by P5-T01).
 - Evidence: planning/evidence/P2-T09/, planning/evidence/P2-phase/.
 
+## Demo sprint (D-036)
+- Scope cut recorded 2026-11-18. Sprint tasks S-1 to S-6 in planning/build-plan.md; gate and deferred rows in planning/decisions.md#D-036.
+- Deferred: opening balances form, Excel migration, scheduler and reminders, partial and text payments, reversal by chat, assets, month-end close, PDF pack, GL, ATB and cash-flow tabs, analytics, most traps, prod self-host.

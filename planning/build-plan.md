@@ -50,6 +50,8 @@ Batches: **B1** T01 ‖ T02 · **B2** T03 ‖ T04 ‖ T05 · **B3** T06 ‖ T07 
 
 Batches: **B4** T01 ‖ T05 ‖ T06 ‖ T07 · **B5** T02 ‖ T03 ‖ T04 · **B6** T08 ‖ T09
 
+> Paused by D-036: P3 to P6 below are replaced by the demo sprint at the end of this file. Deferred items return after the sprint.
+
 ### P3 Boss operations. Demo: boss sends sales, marks a bill paid, asks "how much did I spend on seafood last month", gets 9pm recap.
 | ID | Task | Features | Tests | Depends |
 |---|---|---|---|---|
@@ -260,3 +262,17 @@ Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/telegram/h
 3. Approval decision and `invoice_pipeline.resume` in one unit: if resume raises, the decision is not marked and the boss can press again.
 4. Close the lazy checkpointer pool and LLM client in the app lifespan.
 5. approvals.matches_text claims boss text only while an edit is awaited.
+
+## Demo sprint (D-036)
+Process: build on `preview` directly, one commit per task after `make verify QUIET=1`. No worktrees, cards, per-task verifiers or screenshots. One blind verifier and `make e2e QUIET=1` in S-6. AGENTS.md hard rules and comment policy still apply. Total budget about 6 hours.
+
+| ID | Task | Gate rows | Budget |
+|---|---|---|---|
+| S-1 | End-to-end P2 demo test: link Ocean Fresh by /start token, INV-1043 auto-posts with bill and FYI, trap held, Approve posts. Also confirms T-012 (supplier injection text gets an ack only). | T-012 | 45m |
+| S-2 | Boss assistant graph (`agents/graphs/boss.py`, `telegram/handlers/boss.py`): intents question, manual entry, sales, mark paid. Read tools are typed functions over `reports/` (spend by account or supplier for a range, sales for a range, open bills, account balance). Proposals post only through the ledger service after a Confirm button; Cancel posts nothing. Sales by text only (GST-inclusive split per F-016.2). Mark paid button on bill and FYI messages, full amount, dated today. Handler order: boss text runs after approvals while an edit is awaited (build-plan notes, P2-T08 verifier). | T-143, T-145, T-146, T-147, T-151, T-159, T-163, T-164, T-165 | 2h |
+| S-3 | `/recap` command for the boss: template with invoices logged today (count, total), sales booked, pending approvals via `invoice_pipeline.pending_items`, bills due in N days, overdue bills, pending strangers via `stranger.pending_strangers`; one line when nothing happened. No scheduler. | T-140, T-167, T-168, T-237 | 30m |
+| S-4 | Web: `/accounting/journal` (preset ranges, table, debit and credit totals, detail sheet with lines, checks failed first, document link), `/accounting/trial-balance`, `/accounting/pnl`, `/accounting/balance-sheet` on the existing reports API. Read-only. Uses web/e2e/support only; no new raw journal inserts. | T-020, T-022, T-183, T-185, T-187, T-188, T-189, T-191, T-195, T-199, T-200 | 1.5h |
+| S-5 | Eval: Ocean Fresh clean samples, traps duplicate file, wrong total, unknown supplier, price change, prompt injection; `expected.yaml`; `bk eval` prints the table and exits non-zero on any fail. README section: credentials, `make db migrate`, `make api web tunnel webhook`, `bk seed`, `bk eval`, and a "Deferred to v1" list from D-036. `make eval` with real creds runs only on owner OK. | T-097, T-210, T-214, T-216, T-218, T-222, T-223, T-224, T-225, T-228, T-229, T-230 | 1h |
+| S-6 | `make verify QUIET=1`, `make e2e QUIET=1`, one blind verifier over the sprint diff against D-036 gate rows, tick rows, progress, handoff. | all above | 15m |
+
+Order: S-1, S-2, S-3, S-4, S-5, S-6. If time runs short, drop S-4 statements tabs first, then sales in S-2.
