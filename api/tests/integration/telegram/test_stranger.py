@@ -41,7 +41,7 @@ def storage_root(tg_app: FastAPI, tmp_path: Path) -> Path:
 def started(monkeypatch: pytest.MonkeyPatch) -> list[int]:
     calls: list[int] = []
 
-    async def fake_start(document_id: int) -> None:
+    async def fake_start(document_id: int, ctx: object) -> None:
         calls.append(document_id)
 
     monkeypatch.setattr(invoice_pipeline, "start", fake_start)

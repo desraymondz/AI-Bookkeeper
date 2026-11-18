@@ -29,6 +29,7 @@ VALID: dict[str, Any] = {
     "subtotal": "400.00",
     "gst": "36.00",
     "total": "436.00",
+    "other_text": None,
     "suspicious_content": False,
     "confidence": "0.95",
 }
