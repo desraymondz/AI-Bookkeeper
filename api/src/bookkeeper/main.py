@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from bookkeeper.agents import services
 from bookkeeper.auth.wiring import install_auth
 from bookkeeper.config import ConfigError, Settings, get_settings
 from bookkeeper.db.session import create_engine, create_sessionmaker
@@ -24,6 +25,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             await drain(app)
+            await services.close()
             await engine.dispose()
 
     app = FastAPI(title="AI Bookkeeper", lifespan=lifespan)

@@ -62,6 +62,9 @@ class GeminiClient:
             http_options=types.HttpOptions(timeout=settings.llm_timeout_seconds * 1000),
         )
 
+    async def aclose(self) -> None:
+        await self._client.aio.aclose()
+
     async def generate(
         self,
         *,

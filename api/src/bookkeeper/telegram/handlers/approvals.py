@@ -4,6 +4,7 @@ planning/03-tech-stack.md#5-langgraph-layout."""
 from __future__ import annotations
 
 import datetime as dt
+from typing import Any
 
 from sqlalchemy import select
 from telegram import Update
@@ -57,7 +58,7 @@ def matches_text(update: Update) -> bool:
     if message is None or not message.text or message.text.startswith("/"):
         return False
     replied = message.reply_to_message
-    return replied is None or replied.text == render("invoice_edit_prompt")
+    return replied is not None and replied.text == render("invoice_edit_prompt")
 
 
 async def _latest_approval(ctx: HandlerContext, entry_id: int) -> Approval | None:
@@ -73,6 +74,42 @@ async def _strip_buttons(ctx: HandlerContext, label: str) -> None:
     text = getattr(message, "text", None)
     if message_id is not None and text:
         await ctx.edit(message_id, f"{text}\n\n{label}", reply_markup=None)
+
+
+async def _resume_or_undo(
+    ctx: HandlerContext,
+    invoice_id: int,
+    entry_id: int,
+    approval_id: int,
+    value: dict[str, Any],
+    *,
+    entry_status: EntryStatus,
+    note: str | None,
+    decided: bool,
+) -> None:
+    """Decision and resume act as one unit. See planning/build-plan.md (P2-T10)."""
+    try:
+        await invoice_pipeline.resume(ctx, invoice_id, value)
+    except Exception:
+        await ctx.session.rollback()
+        entry = await ctx.session.get(JournalEntry, entry_id, populate_existing=True)
+        approval = await ctx.session.get(Approval, approval_id, populate_existing=True)
+        if entry is not None and approval is not None and entry.status == entry_status:
+            approval.note = note
+            if decided:
+                approval.decision = None
+                approval.decided_at = None
+            audit.record(
+                ctx.session,
+                AuditActor.SYSTEM,
+                "approval.resume_failed",
+                "journal_entry",
+                entry_id,
+                {"value": sorted(value)},
+            )
+            await ctx.session.commit()
+        raise
+    await ctx.session.commit()
 
 
 async def handle_callback(ctx: HandlerContext) -> None:
@@ -110,8 +147,17 @@ async def handle_callback(ctx: HandlerContext) -> None:
             entry_id,
         )
         await ctx.answer_callback(query.id)
+        await _resume_or_undo(
+            ctx,
+            entry.invoice_id,
+            entry_id,
+            approval.id,
+            {"tell": tell},
+            entry_status=EntryStatus.REJECTED,
+            note=None,
+            decided=False,
+        )
         await _strip_buttons(ctx, "Yes." if tell else "No.")
-        await invoice_pipeline.resume(ctx, entry.invoice_id, {"tell": tell})
         return
 
     decision, enum_value, label = DECISIONS[action]
@@ -134,9 +180,17 @@ async def handle_callback(ctx: HandlerContext) -> None:
         {"message_id": approval.telegram_message_id},
     )
     await ctx.answer_callback(query.id)
+    await _resume_or_undo(
+        ctx,
+        entry.invoice_id,
+        entry_id,
+        approval.id,
+        {"decision": decision},
+        entry_status=EntryStatus.PENDING_APPROVAL,
+        note=None,
+        decided=True,
+    )
     await _strip_buttons(ctx, label)
-    await ctx.session.commit()
-    await invoice_pipeline.resume(ctx, entry.invoice_id, {"decision": decision})
 
 
 async def awaiting_edit(ctx: HandlerContext) -> tuple[Approval, JournalEntry] | None:
@@ -173,8 +227,16 @@ async def handle_text(ctx: HandlerContext) -> None:
         entry.id,
         {"text": message.text[:500]},
     )
-    await ctx.session.commit()
-    await invoice_pipeline.resume(ctx, entry.invoice_id, {"text": message.text})
+    await _resume_or_undo(
+        ctx,
+        entry.invoice_id,
+        entry.id,
+        approval.id,
+        {"text": message.text},
+        entry_status=EntryStatus.PENDING_APPROVAL,
+        note=AWAITING_EDIT,
+        decided=False,
+    )
 
 
 registry.HANDLERS.append(

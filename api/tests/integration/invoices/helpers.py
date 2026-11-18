@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bookkeeper.agents.llm import LLMResult
 from bookkeeper.agents.schemas import ExtractedInvoice, InvoiceRevision
 from bookkeeper.db.models import Bill, EntryStatus, JournalEntry
+from bookkeeper.templates import render
 from tests.integration.telegram.conftest import BOSS_ID, SUPPLIER_ID, post_update
 from tests.support import telegram_updates as tu
 from tests.support.fakes import BotCall, FakeLLMClient, RecordingBot
@@ -93,8 +94,16 @@ class Env:
     async def press(self, data: str, user_id: int = BOSS_ID) -> None:
         await post_update(self.client, self.app, tu.callback_query(user_id, data, message_id=7))
 
-    async def say(self, text: str, user_id: int = BOSS_ID) -> None:
-        await post_update(self.client, self.app, tu.text_message(user_id, text))
+    async def say(self, text: str, user_id: int = BOSS_ID, *, reply: bool = True) -> None:
+        update = tu.text_message(user_id, text)
+        if reply:
+            update["message"]["reply_to_message"] = {
+                "message_id": 7,
+                "date": update["message"]["date"],
+                "chat": update["message"]["chat"],
+                "text": render("invoice_edit_prompt"),
+            }
+        await post_update(self.client, self.app, update)
 
     def to_boss(self) -> list[BotCall]:
         return [c for c in self.bot.calls_for("send_message") if c.chat_id == BOSS_ID]

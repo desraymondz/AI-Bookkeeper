@@ -16,6 +16,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import aliased
+from telegram import ForceReply
 
 from bookkeeper import audit
 from bookkeeper.agents.doctext import pdf_text
@@ -416,6 +417,14 @@ class InvoiceFlow:
                 entry_id,
                 {"error": str(exc)},
             )
+            await self.ctx.to_boss(
+                render(
+                    "invoice_post_refused",
+                    supplier=supplier.name,
+                    invoice_no=invoice.invoice_no,
+                    reason=str(exc).rstrip("."),
+                )
+            )
             await self.session.commit()
             return {"outcome": "stop"}
 
@@ -540,7 +549,9 @@ class InvoiceFlow:
         return {"decision": value["decision"]}
 
     async def prompt_edit(self, state: InvoiceState) -> InvoiceState:
-        await self.ctx.to_boss(render("invoice_edit_prompt"))
+        await self.ctx.to_boss(
+            render("invoice_edit_prompt"), reply_markup=ForceReply(selective=True)
+        )
         await self.session.commit()
         return {}
 

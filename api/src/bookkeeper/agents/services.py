@@ -1,13 +1,14 @@
 """LLM client and checkpointer. See planning/03-tech-stack.md#5-langgraph-layout."""
 
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from bookkeeper.agents.gemini import GeminiClient
 from bookkeeper.agents.llm import LLMClient
@@ -18,6 +19,8 @@ CHECKPOINT_SCHEMA = "langgraph"
 
 _llm: LLMClient | None = None
 _checkpointer: BaseCheckpointSaver[Any] | None = None
+_checkpointer_manager: AbstractAsyncContextManager[AsyncPostgresSaver] | None = None
+_engine: AsyncEngine | None = None
 _override_llm: LLMClient | None = None
 _override_checkpointer: BaseCheckpointSaver[Any] | None = None
 
@@ -27,11 +30,12 @@ def libpq_url(database_url: str) -> str:
 
 
 def llm_for(settings: Settings) -> LLMClient:
-    global _llm
+    global _llm, _engine
     if _override_llm is not None:
         return _override_llm
     if _llm is None:
-        sessionmaker = create_sessionmaker(create_engine(settings.database_url))
+        _engine = create_engine(settings.database_url)
+        sessionmaker = create_sessionmaker(_engine)
         _llm = GeminiClient(settings, audit_sessionmaker=sessionmaker)
     return _llm
 
@@ -60,13 +64,31 @@ async def open_checkpointer(database_url: str) -> AsyncIterator[AsyncPostgresSav
 
 
 async def checkpointer_for(settings: Settings) -> BaseCheckpointSaver[Any]:
-    global _checkpointer
+    global _checkpointer, _checkpointer_manager
     if _override_checkpointer is not None:
         return _override_checkpointer
     if _checkpointer is None:
         manager = open_checkpointer(settings.database_url)
         _checkpointer = await manager.__aenter__()
+        _checkpointer_manager = manager
     return _checkpointer
+
+
+async def close() -> None:
+    """Release the pool, LLM client and engine. See planning/build-plan.md (P2-T10)."""
+    global _llm, _checkpointer, _checkpointer_manager, _engine
+    manager, llm, engine = _checkpointer_manager, _llm, _engine
+    _llm, _checkpointer, _checkpointer_manager, _engine = None, None, None, None
+    try:
+        if manager is not None:
+            await manager.__aexit__(None, None, None)
+    finally:
+        try:
+            if isinstance(llm, GeminiClient):
+                await llm.aclose()
+        finally:
+            if engine is not None:
+                await engine.dispose()
 
 
 @asynccontextmanager
