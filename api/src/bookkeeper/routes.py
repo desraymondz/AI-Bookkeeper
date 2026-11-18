@@ -2,7 +2,14 @@ from fastapi import APIRouter, FastAPI
 
 from bookkeeper.auth.wiring import include_protected
 from bookkeeper.telegram import webhook as telegram_webhook
-from bookkeeper.telegram.handlers import approvals, start, stranger, supplier_docs, supplier_text
+from bookkeeper.telegram.handlers import (
+    approvals,
+    boss,
+    start,
+    stranger,
+    supplier_docs,
+    supplier_text,
+)
 from bookkeeper.web_api import accounts as accounts_api
 from bookkeeper.web_api import config as config_api
 from bookkeeper.web_api import documents as documents_api
@@ -30,7 +37,8 @@ PROTECTED_ROUTERS: list[APIRouter] = [
     links_api.router,
 ]
 
-HANDLER_MODULES = [start, supplier_docs, supplier_text, stranger, approvals]
+HANDLER_MODULES = [start, supplier_docs, supplier_text, stranger, approvals, boss]
+boss.register()
 
 
 def register_protected(app: FastAPI, routers: list[APIRouter]) -> None:

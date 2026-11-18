@@ -7,6 +7,8 @@ from sqlalchemy import select
 
 from bookkeeper import invoice_pipeline
 from bookkeeper.agents import services
+from bookkeeper.agents.boss import BossIntent
+from bookkeeper.agents.llm import LLMResult
 from bookkeeper.db.models import Approval, AuditLog, EntryStatus
 from bookkeeper.ledger import LedgerError
 from tests.integration.invoices.helpers import Env, revision
@@ -94,9 +96,9 @@ async def test_failed_edit_resume_keeps_edit_awaited(
 async def test_text_not_replying_to_edit_prompt_is_not_claimed(env: Env) -> None:
     await env.send(make_invoice(**BAD_GST))
     await env.press(env.buttons()["Edit"])
-    before = len(env.to_boss())
+    env.llm.queue("assistant", LLMResult(parsed=BossIntent(intent="out_of_scope"), model="fake"))
     await env.say("hello there", reply=False)
-    assert len(env.to_boss()) == before
+    assert env.llm.calls_for("revise") == []
     approval = await env.session.scalar(select(Approval))
     assert approval is not None
     await env.session.refresh(approval)
