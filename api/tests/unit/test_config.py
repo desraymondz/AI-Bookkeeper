@@ -59,7 +59,14 @@ def test_test_login_refused_outside_test_env(env: pytest.MonkeyPatch, app_env: s
 
 
 def test_cli_has_every_subcommand() -> None:
-    assert set(COMMANDS) == {"seed", "eval", "set-webhook", "webhook-info", "check-env"}
+    assert set(COMMANDS) == {
+        "seed",
+        "reset-books",
+        "eval",
+        "set-webhook",
+        "webhook-info",
+        "check-env",
+    }
 
 
 def test_cli_check_env(env: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:

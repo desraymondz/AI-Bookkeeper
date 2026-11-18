@@ -5,7 +5,7 @@ from typing import Any, Literal, Self
 from pydantic import ValidationError, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILES: tuple[str, ...] = ("../.env", ".env")
+ENV_FILES: tuple[str, ...] = ("../.env", "../.env.local", ".env", ".env.local")
 
 _SETTINGS_CONFIG = SettingsConfigDict(
     env_file=ENV_FILES,

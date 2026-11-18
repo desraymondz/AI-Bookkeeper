@@ -1,5 +1,5 @@
 # See planning/03-tech-stack.md section 10.3
-.PHONY: setup sync deps-check verify hooks db migrate seed api web tunnel webhook lint format typecheck test e2e eval check prod-up
+.PHONY: setup sync deps-check verify hooks db migrate seed seed-base reset-books api web tunnel webhook lint format typecheck test e2e eval check prod-up
 
 API := cd api &&
 WEB := cd web &&
@@ -41,6 +41,12 @@ migrate:
 
 seed:
 	$(API) uv run bk seed
+
+seed-base:
+	$(API) uv run bk seed --no-entries
+
+reset-books:
+	$(API) uv run bk reset-books --yes
 
 api:
 	$(API) uv run uvicorn bookkeeper.main:app --reload --port 8000

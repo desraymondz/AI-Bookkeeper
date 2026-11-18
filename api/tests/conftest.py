@@ -1,6 +1,7 @@
 import os
 import uuid
 from collections.abc import AsyncIterator, Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -45,6 +46,21 @@ def _fresh_database(base_url: str) -> Iterator[str]:
         admin.dispose()
 
 
+STALE_CONTAINER_AGE = timedelta(hours=1)
+
+
+def _remove_stale_test_containers() -> None:
+    import docker  # type: ignore[import-untyped]
+
+    client = docker.from_env()
+    cutoff = datetime.now(UTC) - STALE_CONTAINER_AGE
+    for container in client.containers.list(all=True, filters={"label": "org.testcontainers=true"}):
+        created = datetime.fromisoformat(container.attrs["Created"][:19]).replace(tzinfo=UTC)
+        if created < cutoff:
+            container.remove(force=True)
+    client.close()
+
+
 @pytest.fixture(scope="session")
 def database_url() -> Iterator[str]:
     """See planning/03-tech-stack.md#12-testing-strategy."""
@@ -55,6 +71,7 @@ def database_url() -> Iterator[str]:
 
     from testcontainers.community.postgres import PostgresContainer
 
+    _remove_stale_test_containers()
     with PostgresContainer(PG_IMAGE, driver="psycopg") as pg:
         url: str = pg.get_connection_url()
         _migrate(url)

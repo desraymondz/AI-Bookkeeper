@@ -291,7 +291,7 @@ async def _sales(session: AsyncSession, acc: dict[str, int]) -> int:
     return days
 
 
-async def seed_demo_cafe(session: AsyncSession) -> SeedSummary:
+async def seed_demo_cafe(session: AsyncSession, *, entries: bool = True) -> SeedSummary:
     if not await _is_empty(session):
         raise SeedRefusedError(
             "Database is not empty (settings, accounts, suppliers or entries exist). "
@@ -302,17 +302,22 @@ async def seed_demo_cafe(session: AsyncSession) -> SeedSummary:
     await seed_default_chart(session)
     await session.flush()
     acc = await _account_ids(session)
+    if not entries:
+        suppliers = await _suppliers(session, acc)
+        return SeedSummary(
+            suppliers=len(suppliers), invoices=0, sales_days=0, payments=0, entries=0
+        )
     await _opening(session, acc)
     await _asset(session, acc)
     suppliers = await _suppliers(session, acc)
     refs = await _invoices(session, acc, suppliers)
     payments = await _payments(session, acc, refs)
     sales_days = await _sales(session, acc)
-    entries = await session.scalar(select(func.count()).select_from(JournalEntry))
+    count = await session.scalar(select(func.count()).select_from(JournalEntry))
     return SeedSummary(
         suppliers=len(suppliers),
         invoices=len(refs),
         sales_days=sales_days,
         payments=payments,
-        entries=int(entries or 0),
+        entries=int(count or 0),
     )

@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. S-1 to S-6 DONE. Next: owner runs `make eval` with real Gemini to tick the eval gate rows, then the live Telegram demo (README). P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
+Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. S-1 to S-6 DONE. Real-Gemini eval 11/11, gate rows ticked. Next: live Telegram demo (README). P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
 
 | Doc | Status |
 | --- | --- |
@@ -75,3 +75,5 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | S-5 eval and README | e4fb0c6; eval/samples, expected.toml, eval/runner.py (scratch DB, RecordingBot), bk eval, bk set-webhook, bk webhook-info, scripts/dev-tunnel.sh, README; T-223, T-224, T-230 ticked; real-Gemini eval rows wait for `make eval` with owner OK |
 | 2026-11-18 | S-6 checks | make e2e QUIET=1 33 passed; blind verifier PASS with minor issues; fixed: bill row locked on pay Confirm and payment recorded or rolled back, buttons stripped on handled paths, LLM clarify capped, web warning uses API difference (no book maths), double Mark paid test, T-187 API test; make verify QUIET=1 green (api 454, web 46) |
 
+| 2026-11-18 | Real-Gemini eval | `bk eval` 11/11 with gemini-3.5-flash-lite after fix: agents/gemini.py sends `response_json_schema` (Gemini `response_schema` refused the `additionalProperties` key from `extra="forbid"`, so every extraction got a 400 and the boss saw "could not read"); bot messages checked by hand for card text; T-097, T-210, T-214, T-216, T-218, T-222, T-225, T-228, T-229 ticked; make verify QUIET=1 green. `.env.local` lacks DATABASE_URL and PUBLIC_BASE_URL, and config reads only `.env` |
+| 2026-11-18 | Opening balances (F-004, pulled from D-036 deferred list) | ledger/opening.py (reverse previous opening, post new, linked by reverses_id), PUT/GET /api/opening-balances, web /settings/opening-balances with live difference in integer cents and replace dialog; `bk seed --no-entries` (make seed-base) and `bk reset-books --yes` (make reset-books, TRUNCATE of book tables, keeps settings, accounts, suppliers, users); dev DB reset after pg_dump to storage/backups/; T-045..T-048 ticked, T-049 dialog and API linking tested but Journal display not checked in a browser; make verify QUIET=1 green (api 461, web 50) |

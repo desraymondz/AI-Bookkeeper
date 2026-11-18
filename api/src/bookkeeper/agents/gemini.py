@@ -80,7 +80,7 @@ class GeminiClient:
             config = types.GenerateContentConfig(
                 system_instruction=system,
                 response_mime_type="application/json" if schema else None,
-                response_schema=schema,
+                response_json_schema=schema.model_json_schema() if schema else None,
                 temperature=0,
             )
             response = await self._client.aio.models.generate_content(

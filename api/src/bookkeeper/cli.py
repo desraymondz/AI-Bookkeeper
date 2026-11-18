@@ -20,7 +20,7 @@ def _check_env(_: argparse.Namespace) -> int:
     return 0
 
 
-async def _seed_async() -> int:
+async def _seed_async(entries: bool) -> int:
     from eval.seed.runner import SeedRefusedError, seed_demo_cafe
 
     from bookkeeper.config import load_database_settings
@@ -30,7 +30,7 @@ async def _seed_async() -> int:
     try:
         async with create_sessionmaker(engine)() as session:
             try:
-                summary = await seed_demo_cafe(session)
+                summary = await seed_demo_cafe(session, entries=entries)
             except SeedRefusedError as exc:
                 await session.rollback()
                 print(exc, file=sys.stderr)
@@ -46,12 +46,48 @@ async def _seed_async() -> int:
     return 0
 
 
-def _seed(_: argparse.Namespace) -> int:
+def _seed(args: argparse.Namespace) -> int:
     api_dir = str(Path(__file__).resolve().parents[2])
     if api_dir not in sys.path:
         sys.path.insert(0, api_dir)
     try:
-        return asyncio.run(_seed_async())
+        return asyncio.run(_seed_async(not args.no_entries))
+    except ConfigError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+
+async def _reset_books_async() -> int:
+    from eval.seed.reset import reset_books
+
+    from bookkeeper.config import load_database_settings
+    from bookkeeper.db.session import create_engine, create_sessionmaker
+
+    engine = create_engine(load_database_settings().database_url)
+    try:
+        async with create_sessionmaker(engine)() as session:
+            summary = await reset_books(session)
+            await session.commit()
+    finally:
+        await engine.dispose()
+    print(
+        f"Cleared {summary.entries} journal entries with their invoices, bills, payments, "
+        "documents, periods and assets. Settings, accounts, suppliers and users are kept."
+    )
+    return 0
+
+
+def _reset_books(args: argparse.Namespace) -> int:
+    if not args.yes:
+        print(
+            "This deletes every journal entry and invoice. Run again with --yes.", file=sys.stderr
+        )
+        return 1
+    api_dir = str(Path(__file__).resolve().parents[2])
+    if api_dir not in sys.path:
+        sys.path.insert(0, api_dir)
+    try:
+        return asyncio.run(_reset_books_async())
     except ConfigError as exc:
         print(exc, file=sys.stderr)
         return 1
@@ -120,6 +156,7 @@ def _run(coro_fn: Callable[[], Coroutine[Any, Any, int]]) -> Callable[[argparse.
 
 COMMANDS: dict[str, tuple[str, Callable[[argparse.Namespace], int]]] = {
     "seed": ("Seed the demo cafe", _seed),
+    "reset-books": ("Delete all journal entries and invoices, keep setup", _reset_books),
     "eval": ("Run the eval harness", _eval),
     "set-webhook": ("Register the Telegram webhook", _run(_set_webhook_async)),
     "webhook-info": ("Show Telegram webhook status", _run(_webhook_info_async)),
@@ -133,6 +170,14 @@ def build_parser() -> argparse.ArgumentParser:
     for name, (help_text, handler) in COMMANDS.items():
         cmd = sub.add_parser(name, help=help_text)
         cmd.set_defaults(handler=handler)
+        if name == "seed":
+            cmd.add_argument(
+                "--no-entries",
+                action="store_true",
+                help="Seed settings, chart of accounts and suppliers only",
+            )
+        if name == "reset-books":
+            cmd.add_argument("--yes", action="store_true", help="Confirm the delete")
     return parser
 
 
