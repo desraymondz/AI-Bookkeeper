@@ -54,7 +54,10 @@ def matches_callback(update: Update) -> bool:
 
 def matches_text(update: Update) -> bool:
     message = update.message
-    return bool(message and message.text and not message.text.startswith("/"))
+    if message is None or not message.text or message.text.startswith("/"):
+        return False
+    replied = message.reply_to_message
+    return replied is None or replied.text == render("invoice_edit_prompt")
 
 
 async def _latest_approval(ctx: HandlerContext, entry_id: int) -> Approval | None:

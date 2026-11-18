@@ -14,6 +14,8 @@ from bookkeeper.agents.llm import LLMClient
 from bookkeeper.config import Settings
 from bookkeeper.db.session import create_engine, create_sessionmaker
 
+CHECKPOINT_SCHEMA = "langgraph"
+
 _llm: LLMClient | None = None
 _checkpointer: BaseCheckpointSaver[Any] | None = None
 _override_llm: LLMClient | None = None
@@ -38,11 +40,18 @@ def llm_for(settings: Settings) -> LLMClient:
 async def open_checkpointer(database_url: str) -> AsyncIterator[AsyncPostgresSaver]:
     pool: AsyncConnectionPool[Any] = AsyncConnectionPool(
         libpq_url(database_url),
-        kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
+        kwargs={
+            "autocommit": True,
+            "prepare_threshold": 0,
+            "row_factory": dict_row,
+            "options": f"-c search_path={CHECKPOINT_SCHEMA}",
+        },
         open=False,
     )
     await pool.open()
     try:
+        async with pool.connection() as conn:
+            await conn.execute(f"CREATE SCHEMA IF NOT EXISTS {CHECKPOINT_SCHEMA}")
         saver = AsyncPostgresSaver(pool)
         await saver.setup()
         yield saver
