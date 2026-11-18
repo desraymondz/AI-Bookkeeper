@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-plan.md (D-026). B1 merged. All P1 tasks merged. Next: P1 phase-end regression, then handoff and P2. Subagents now run on Sonnet 5.5 per owner (2026-11-18). Next after B2: B3 (P1-T06 reports, P1-T07 web auth/settings/accounts, P1-T08 seed).
+Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. S-1 to S-6 DONE. Real-Gemini eval 11/11, gate rows ticked. Next: live Telegram demo (README). P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
 
 | Doc | Status |
 | --- | --- |
@@ -9,7 +9,7 @@ Phase: Build P1 Foundation (2026-11-18). Build plan approved: planning/build-pla
 | 02-design.md | Locked |
 | 03-tech-stack.md | Locked (all models Flash-Lite via D-016) |
 | 04-test-spec.md | Locked |
-| decisions.md | D-001 to D-025 |
+| decisions.md | D-001 to D-036 |
 | ai-log.md | 4 corrections logged |
 | AGENTS.md, CLAUDE.md, .claude/ hooks | Written |
 
@@ -36,3 +36,44 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 | 2026-11-18 | B3 | P1-T07 web auth, setup, settings, accounts | Verifier PASS (Sonnet), merged; 14 browser rows ticked; evidence in planning/evidence/P1-T07/ |
 | 2026-11-18 | B3 | P1-T08 demo cafe seed | FAIL (comment policy, self-ticked spec) then fix round, re-verify PASS, merged; T-209 ticked |
 | 2026-11-18 | B3 | P1-T06 reports service | Verifier PASS, merged; T-009, T-202 ticked; reports/ledger routers wired; auth stubs moved to /api/stub-*; D-030 |
+| 2026-11-18 | P2 | P2-T00 integration harness | Builder cut off uncommitted; Sonnet builder finished; verifier PASS (api 241, web 26, e2e 24), merged; make hooks and make sync run in main checkout |
+| 2026-11-18 | B4 | P2-T07 Gemini client, extraction, proposal | Verifier PASS (scoped, D-032), merged; T-044, T-098, T-101..T-104 ticked; T-100 ticks with P2-T08 (boss card); preview verify green api 254 web 26 |
+| 2026-11-18 | B4 | P2-T01 webhook, routing, notify, templates | Verifier PASS with G-5 gap (raw bot on HandlerContext); fix round added notify facade and tg_app fixture in tests/support; orchestrator checked fix (35 tests, no bypass grep), merged; lifespan drains telegram tasks; T-014, T-078..T-081 ticked; preview api 267 web 26 |
+| 2026-11-18 | B4 | P2-T05 checks F-013.1..5 | Reconciled to T07 schema; verifier FAIL (sha rule matched own document, tautological T-114); fix round added current_invoice_id; re-verify PASS; merged; T-036, T-105..T-116, T-240 ticked; T-125 ticks with P2-T06; preview api 303 web 26 |
+| 2026-11-18 | B5 | P2-T04 invoice intake and storage | Verifier PASS (scoped + shared infra), merged; T-090..T-096, T-245 ticked; D-033 re-send reuses Document row; HANDLER_MODULES list in routes.py loads handler modules |
+| 2026-11-18 | B4 | P2-T06 checks F-013.6..10 | Re-integrated on T05/T07; verifier PASS; merged; T-117..T-125, T-239 ticked; T-233..T-235 held for D-034 (document text gap, fixed in P2-T08). B4 complete. |
+| 2026-11-18 | B5 | P2-T02 linking, suppliers, users API | Verifier PASS (scoped + shared infra), merged; migration 0003 trade_payable on account 2000 (D-030 closed); T-058..T-062, T-064, T-068..T-070, T-075..T-077, T-202 ticked; agents/tool_gate.py for P2-T08; preview api 371 web 26 |
+| 2026-11-18 | B5 | P2-T03 stranger handling | Pre-verify fix (ctx._bot), verifier FAIL (bypass still present despite report, Ref S<n> spoof, silent rejections), fix round 2, re-verify PASS, merged; T-082..T-089, T-238 ticked; T-237 held for P3-T04 recap. B5 complete. B6 (P2-T08, P2-T09) building. |
+| 2026-11-18 | B6 | P2-T09 web suppliers, users, Connect Telegram | Verifier PASS with browser walk-through, merged; T-057, T-063, T-065..T-067, T-071..T-074 ticked; T-024 web flake fixed (MSW in-flight wait); evidence in planning/evidence/P2-T09/ |
+| 2026-11-18 | B6 | P2-T08 invoice LangGraph and approvals | Orchestrator ran full verify (api 417, web 37), verifier PASS, merged; D-034 closed; migration 0004 DB immutability trigger (D-035); 23 rows ticked incl. T-233..T-235, T-100; T-011 at P4-T02, T-140/T-237 at P3-T04; P2-T10 hardening card added |
+| 2026-11-18 | B6 | P2-T10 invoice pipeline hardening | Verifier PASS, merged; trigger raw-SQL tests, boss notice on refused post, resume undo, services close, edit text only on reply to prompt; T-005 DB layer proven (ticks at P4-T02) |
+
+## P1 phase summary
+- Built: API and web scaffolds, ledger posting service and periods, Google auth and sessions, settings and chart of accounts, reports service, web sign-in/setup/settings/accounts, demo cafe seed.
+- Ticked: 46 rows. Deferred by plan: T-005, T-011 (all write paths), T-036 second half (P2-T05), T-044 (P2-T07).
+- Decisions: D-026 to D-031. Corrections: planning/ai-log.md (6 build rows).
+- Known cosmetic: duplicate "Business" heading on /settings/business.
+
+## P2 phase summary
+- Built: integration harness (D-031), Telegram webhook, routing, notify facade (G-5), linking and suppliers/users API, stranger handling, invoice intake and storage, ten F-013 checks, Gemini extraction and proposal, invoice LangGraph with auto-post, approval cards, revisions, duplicate handling, hardening; web suppliers, users, Connect Telegram.
+- Migrations: 0003 trade_payable subtype (D-030 closed), 0004 posted-journal immutability trigger (D-035).
+- Decisions: D-032 to D-035. Corrections: planning/ai-log.md (P2 rows).
+- Held rows: T-005, T-011 (P4-T02), T-140, T-237 (P3-T04).
+- Gaps carried: no single end-to-end P2 demo test (P3-T00); revoked users vanish on reload (decide in P3); Stop hook 45s timeout trips under parallel load (owner to decide); seed.ts raw journal insert (replace by P5-T01).
+- Evidence: planning/evidence/P2-T09/, planning/evidence/P2-phase/.
+
+## Demo sprint (D-036)
+- Scope cut recorded 2026-11-18. Sprint tasks S-1 to S-6 in planning/build-plan.md; gate and deferred rows in planning/decisions.md#D-036.
+- Deferred: opening balances form, Excel migration, scheduler and reminders, partial and text payments, reversal by chat, assets, month-end close, PDF pack, GL, ATB and cash-flow tabs, analytics, most traps, prod self-host.
+
+| Date | Sprint task | Result |
+| --- | --- | --- |
+| 2026-11-18 | S-1 end-to-end demo test | 3ba244c; link by /start, auto-post with bill and FYI, trap held, Approve posts; T-012 ticked |
+| 2026-11-18 | S-2 boss assistant | 4e3ebf9; agents/boss.py, reports/assistant.py, handlers/boss.py (registered last via boss.register()); held PROPOSED entry is the Confirm step, no LangGraph; T-143, T-145..T-147, T-151, T-159, T-163..T-165 ticked |
+| 2026-11-18 | S-3 /recap | cc14d7d; reports/recap.py (gross sales incl. Output GST), handlers/recap.py; on demand only, no scheduler; T-140, T-167, T-168, T-237 ticked |
+| 2026-11-18 | S-4 web books | 1618f77; Journal, entry sheet (lines, checks, PDF, reversal, audit), TB, P&L, BS; TB API takes range end; deferred tabs hidden; T-020, T-022, T-183, T-185, T-187..T-189, T-191, T-195, T-199, T-200 ticked |
+| 2026-11-18 | S-5 eval and README | e4fb0c6; eval/samples, expected.toml, eval/runner.py (scratch DB, RecordingBot), bk eval, bk set-webhook, bk webhook-info, scripts/dev-tunnel.sh, README; T-223, T-224, T-230 ticked; real-Gemini eval rows wait for `make eval` with owner OK |
+| 2026-11-18 | S-6 checks | make e2e QUIET=1 33 passed; blind verifier PASS with minor issues; fixed: bill row locked on pay Confirm and payment recorded or rolled back, buttons stripped on handled paths, LLM clarify capped, web warning uses API difference (no book maths), double Mark paid test, T-187 API test; make verify QUIET=1 green (api 454, web 46) |
+
+| 2026-11-18 | Real-Gemini eval | `bk eval` 11/11 with gemini-3.5-flash-lite after fix: agents/gemini.py sends `response_json_schema` (Gemini `response_schema` refused the `additionalProperties` key from `extra="forbid"`, so every extraction got a 400 and the boss saw "could not read"); bot messages checked by hand for card text; T-097, T-210, T-214, T-216, T-218, T-222, T-225, T-228, T-229 ticked; make verify QUIET=1 green. `.env.local` lacks DATABASE_URL and PUBLIC_BASE_URL, and config reads only `.env` |
+| 2026-11-18 | Opening balances (F-004, pulled from D-036 deferred list) | ledger/opening.py (reverse previous opening, post new, linked by reverses_id), PUT/GET /api/opening-balances, web /settings/opening-balances with live difference in integer cents and replace dialog; `bk seed --no-entries` (make seed-base) and `bk reset-books --yes` (make reset-books, TRUNCATE of book tables, keeps settings, accounts, suppliers, users); dev DB reset after pg_dump to storage/backups/; T-045..T-048 ticked, T-049 dialog and API linking tested but Journal display not checked in a browser; make verify QUIET=1 green (api 461, web 50) |

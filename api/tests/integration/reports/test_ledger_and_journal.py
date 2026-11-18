@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookkeeper.ledger import reverse
 from bookkeeper.reports import general_ledger, journal_entry_detail, journal_listing
-from tests.integration.reports.helpers import ZERO, d, post, seed_three_months
+from tests.integration.reports.helpers import ZERO, d, seed_three_months
+from tests.support.factories import post
 
 pytestmark = pytest.mark.integration
 
@@ -14,7 +15,7 @@ pytestmark = pytest.mark.integration
 async def test_general_ledger_opening_running_and_closing(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     gl = await general_ledger(db_session, ids["1000"], dt.date(2026, 10, 1), dt.date(2026, 10, 31))
     assert gl.opening_balance == d("5800.00")
     assert [p.balance for p in gl.postings] == [d("6600.00")]
@@ -30,7 +31,7 @@ async def test_general_ledger_opening_running_and_closing(
 async def test_journal_totals_equal_and_account_filter(
     db_session: AsyncSession, ids: dict[str, int]
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     listing = await journal_listing(db_session, dt.date(2026, 10, 1), dt.date(2026, 10, 31))
     assert len(listing.entries) == 5
     assert listing.total_debit == listing.total_credit
@@ -45,10 +46,9 @@ async def test_entry_detail_links_reversal_and_audit(
 ) -> None:
     original = await post(
         db_session,
-        ids,
         dt.date(2026, 11, 4),
-        "Wrong",
         [("6010", "50.00", "0"), ("1010", "0", "50.00")],
+        description="Wrong",
     )
     assert original.entry_no is not None
     reversal = await reverse(db_session, original.id)
@@ -68,7 +68,7 @@ async def test_entry_detail_links_reversal_and_audit(
 async def test_ledger_and_journal_api(
     db_session: AsyncSession, ids: dict[str, int], client: httpx.AsyncClient
 ) -> None:
-    await seed_three_months(db_session, ids)
+    await seed_three_months(db_session)
     res = await client.get(
         f"/api/ledger/{ids['1010']}",
         params={"preset": "custom", "start": "2026-09-01", "end": "2026-09-30"},

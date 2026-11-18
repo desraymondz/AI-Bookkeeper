@@ -27,6 +27,7 @@ export default defineConfig({
     },
     {
       command: `pnpm exec vite --port ${WEB_PORT} --strictPort`,
+      env: { E2E_API_PORT: String(API_PORT) },
       url: `http://localhost:${WEB_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

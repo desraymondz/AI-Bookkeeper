@@ -33,6 +33,7 @@ import { Route as AppSettingsOpeningBalancesRouteImport } from './routes/_app/se
 import { Route as AppSettingsSuppliersRouteImport } from './routes/_app/settings/suppliers'
 import { Route as AppSettingsTelegramRouteImport } from './routes/_app/settings/telegram'
 import { Route as AppSettingsUsersRouteImport } from './routes/_app/settings/users'
+import { Route as AppAccountingJournalEntryNoRouteImport } from './routes/_app/accounting/journal.$entryNo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -157,6 +158,12 @@ const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppAccountingJournalEntryNoRoute =
+  AppAccountingJournalEntryNoRouteImport.update({
+    id: '/$entryNo',
+    path: '/$entryNo',
+    getParentRoute: () => AppAccountingJournalRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -169,7 +176,7 @@ export interface FileRoutesByFullPath {
   '/accounting/adjusted-trial-balance': typeof AppAccountingAdjustedTrialBalanceRoute
   '/accounting/balance-sheet': typeof AppAccountingBalanceSheetRoute
   '/accounting/cash-flow': typeof AppAccountingCashFlowRoute
-  '/accounting/journal': typeof AppAccountingJournalRoute
+  '/accounting/journal': typeof AppAccountingJournalRouteWithChildren
   '/accounting/ledger': typeof AppAccountingLedgerRoute
   '/accounting/pnl': typeof AppAccountingPnlRoute
   '/accounting/trial-balance': typeof AppAccountingTrialBalanceRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/settings/users': typeof AppSettingsUsersRoute
   '/accounting/': typeof AppAccountingIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
+  '/accounting/journal/$entryNo': typeof AppAccountingJournalEntryNoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -192,7 +200,7 @@ export interface FileRoutesByTo {
   '/accounting/adjusted-trial-balance': typeof AppAccountingAdjustedTrialBalanceRoute
   '/accounting/balance-sheet': typeof AppAccountingBalanceSheetRoute
   '/accounting/cash-flow': typeof AppAccountingCashFlowRoute
-  '/accounting/journal': typeof AppAccountingJournalRoute
+  '/accounting/journal': typeof AppAccountingJournalRouteWithChildren
   '/accounting/ledger': typeof AppAccountingLedgerRoute
   '/accounting/pnl': typeof AppAccountingPnlRoute
   '/accounting/trial-balance': typeof AppAccountingTrialBalanceRoute
@@ -205,6 +213,7 @@ export interface FileRoutesByTo {
   '/settings/users': typeof AppSettingsUsersRoute
   '/accounting': typeof AppAccountingIndexRoute
   '/settings': typeof AppSettingsIndexRoute
+  '/accounting/journal/$entryNo': typeof AppAccountingJournalEntryNoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -219,7 +228,7 @@ export interface FileRoutesById {
   '/_app/accounting/adjusted-trial-balance': typeof AppAccountingAdjustedTrialBalanceRoute
   '/_app/accounting/balance-sheet': typeof AppAccountingBalanceSheetRoute
   '/_app/accounting/cash-flow': typeof AppAccountingCashFlowRoute
-  '/_app/accounting/journal': typeof AppAccountingJournalRoute
+  '/_app/accounting/journal': typeof AppAccountingJournalRouteWithChildren
   '/_app/accounting/ledger': typeof AppAccountingLedgerRoute
   '/_app/accounting/pnl': typeof AppAccountingPnlRoute
   '/_app/accounting/trial-balance': typeof AppAccountingTrialBalanceRoute
@@ -232,6 +241,7 @@ export interface FileRoutesById {
   '/_app/settings/users': typeof AppSettingsUsersRoute
   '/_app/accounting/': typeof AppAccountingIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_app/accounting/journal/$entryNo': typeof AppAccountingJournalEntryNoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/accounting/'
     | '/settings/'
+    | '/accounting/journal/$entryNo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/settings/users'
     | '/accounting'
     | '/settings'
+    | '/accounting/journal/$entryNo'
   id:
     | '__root__'
     | '/'
@@ -308,6 +320,7 @@ export interface FileRouteTypes {
     | '/_app/settings/users'
     | '/_app/accounting/'
     | '/_app/settings/'
+    | '/_app/accounting/journal/$entryNo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -488,14 +501,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsUsersRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/accounting/journal/$entryNo': {
+      id: '/_app/accounting/journal/$entryNo'
+      path: '/$entryNo'
+      fullPath: '/accounting/journal/$entryNo'
+      preLoaderRoute: typeof AppAccountingJournalEntryNoRouteImport
+      parentRoute: typeof AppAccountingJournalRoute
+    }
   }
 }
+
+interface AppAccountingJournalRouteChildren {
+  AppAccountingJournalEntryNoRoute: typeof AppAccountingJournalEntryNoRoute
+}
+
+const AppAccountingJournalRouteChildren: AppAccountingJournalRouteChildren = {
+  AppAccountingJournalEntryNoRoute: AppAccountingJournalEntryNoRoute,
+}
+
+const AppAccountingJournalRouteWithChildren =
+  AppAccountingJournalRoute._addFileChildren(AppAccountingJournalRouteChildren)
 
 interface AppAccountingRouteChildren {
   AppAccountingAdjustedTrialBalanceRoute: typeof AppAccountingAdjustedTrialBalanceRoute
   AppAccountingBalanceSheetRoute: typeof AppAccountingBalanceSheetRoute
   AppAccountingCashFlowRoute: typeof AppAccountingCashFlowRoute
-  AppAccountingJournalRoute: typeof AppAccountingJournalRoute
+  AppAccountingJournalRoute: typeof AppAccountingJournalRouteWithChildren
   AppAccountingLedgerRoute: typeof AppAccountingLedgerRoute
   AppAccountingPnlRoute: typeof AppAccountingPnlRoute
   AppAccountingTrialBalanceRoute: typeof AppAccountingTrialBalanceRoute
@@ -507,7 +538,7 @@ const AppAccountingRouteChildren: AppAccountingRouteChildren = {
     AppAccountingAdjustedTrialBalanceRoute,
   AppAccountingBalanceSheetRoute: AppAccountingBalanceSheetRoute,
   AppAccountingCashFlowRoute: AppAccountingCashFlowRoute,
-  AppAccountingJournalRoute: AppAccountingJournalRoute,
+  AppAccountingJournalRoute: AppAccountingJournalRouteWithChildren,
   AppAccountingLedgerRoute: AppAccountingLedgerRoute,
   AppAccountingPnlRoute: AppAccountingPnlRoute,
   AppAccountingTrialBalanceRoute: AppAccountingTrialBalanceRoute,

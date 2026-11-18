@@ -1,7 +1,32 @@
-// See planning/03-tech-stack.md#12-testing-strategy
-export const API_PORT = 8000
-export const WEB_PORT = 5174
-export const E2E_DB_NAME = 'bookkeeper_e2e'
+import path from 'node:path'
+
+// See planning/decisions.md#D-031 and planning/03-tech-stack.md#12-testing-strategy
+const worktreeName = path.basename(path.resolve(import.meta.dirname, '../../..'))
+
+function stableHash(value: string): number {
+  let hash = 2166136261
+  for (const char of value) {
+    hash ^= char.codePointAt(0) ?? 0
+    hash = Math.imul(hash, 16777619) >>> 0
+  }
+  return hash
+}
+
+function slugOf(value: string): string {
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40) || 'main'
+  )
+}
+
+const offset = stableHash(worktreeName) % 2000
+
+export const API_PORT = Number(process.env.E2E_API_PORT ?? 20000 + offset)
+export const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 22000 + offset)
+export const E2E_DB_NAME = process.env.E2E_DB_NAME ?? `bookkeeper_e2e_${slugOf(worktreeName)}`
 
 const PG_BASE = process.env.E2E_PG_URL ?? 'postgresql://bookkeeper:bookkeeper@127.0.0.1:5432'
 

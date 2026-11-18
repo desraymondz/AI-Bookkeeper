@@ -224,3 +224,90 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
 - Rejected: Rolling 30/90/365-day windows (harder to compare month to month).
 - Open: cash flow finds payables by the word "payable" in the account name; move to a subtype rule before boss-added liability accounts matter (carry forward to P2-T02).
 - Affects: 01-prd.md F-024.2, F-027, F-023.1; api/src/bookkeeper/reports/
+
+## D-031 Integration-first workflow for P2 onward
+- Date: 2026-11-18
+- Context: Every P1 failure came from parallel tasks meeting on `preview` (auth wiring, ORM guard vs test data, stub route clashes, missing deps in a checkout). See planning/ai-log.md.
+- Decision:
+  - One route registry, `api/src/bookkeeper/routes.py` (`PUBLIC_ROUTERS`, `PROTECTED_ROUTERS`, `register_routes(app)`); `main.py` only calls it. Builders add their router with a one-line append; integration tests always use the real `create_app`.
+  - One shared test harness, `api/tests/support/` (test app and clients with stub boss, factories that post through the ledger service, fake LLM client, recording fake Telegram bot, Telegram update builders) and `web/e2e/support/` (DB reset, test login, API seeding). Task-local copies are not allowed.
+  - Dependencies: builders may add packages in their branch but must commit the lockfile. `make sync` (`uv sync --locked`, `pnpm install --frozen-lockfile`) runs after every worktree creation and every merge; a repo git hook runs it automatically when a lockfile changes; `make deps-check` fails if a lockfile is stale.
+  - Worktrees via `scripts/wt.sh` (`new`, `integrate`, `sync-all`); e2e ports and database name derive from the worktree so parallel runs do not collide.
+  - Builder gate before reporting: isolated tests for its T-xxx green, then merge latest `preview` into the task branch, resolve conflicts, `make sync`, full `make verify` green, commit. The report states the integrated `preview` SHA.
+  - Orchestrator merges only if `preview` is an ancestor of the task branch; otherwise the branch goes back for re-integration. Verifiers review the integrated branch and run `make verify`.
+- Rejected: Orchestrator-only integration at merge time (what P1 did).
+- Affects: planning/build-plan.md (P2 conventions, P2-T00), AGENTS.md (git workflow, commands)
+
+## D-032 Token budget: scoped verifiers, quiet output, rules files
+- Date: 2026-11-18
+- Context: Owner asked to cut token spend. P2-T00 verifier (93k) cost more than its builder (77k), mostly from re-reading context and re-running the full suite with verbose output.
+- Decision:
+  - Verifiers run only the task's own tests (quiet) plus the white-box review; full lint, typecheck, suite and build run only when the diff touches shared infrastructure. Replaces the "verifiers run `make verify`" part of D-031.
+  - Orchestrator runs `make verify QUIET=1` on `preview` after each merge and `make e2e QUIET=1` once per batch; a failure blocks the next batch.
+  - `make verify|test|e2e QUIET=1` prints quiet pytest (`-q --tb=short -rfE`), dot reporters for Vitest and Playwright, and build output only on failure. Builders and verifiers always use it.
+  - Builder and verifier rules live in `planning/builder-rules.md` and `planning/verifier-rules.md`; prompts point to them instead of repeating them.
+- Rejected: Dropping the per-task verifier (loses the blind review).
+- Affects: planning/build-plan.md, Makefile, planning/builder-rules.md, planning/verifier-rules.md
+
+## D-033 Re-sent identical file reuses the Document row (T-096 reading)
+- Date: 2026-11-18
+- Context: T-096 says the new document record links to the earlier one; PRD F-011.4 says a re-sent file is linked to the earlier document and not stored twice. `documents.sha256` is unique, so a second row with the same hash cannot exist.
+- Decision: A re-sent identical file reuses the existing Document row (one row, one file on disk); the supplier still gets the ack and `invoice_pipeline.start(document_id)` runs again. T-096 counts as passed when exactly one row and one stored file exist and the pipeline is started with the same document id. P2-T08 handles a repeat start on the same document (F-013.5 duplicate rule with `CheckContext.current_invoice_id`) and records the re-send in the audit log with its sender.
+- Rejected: A nullable `duplicate_of_id` column with a second Document row (needs the sha256 uniqueness dropped; no PRD benefit).
+- Affects: planning/04-test-spec.md T-096 (reading only), planning/build-plan.md P2-T08
+
+## D-034 Document text for the suspicious-content check (F-013.10)
+- Date: 2026-11-18
+- Context: F-013.10 and T-233..T-235 scan "document text" for instruction-like content (D-025). After P2-T05..T07 the pipeline holds no document text: `Document` has no text column and `ExtractedInvoice` has no raw-text field, so `suspicious.py` scans only supplier name, invoice number and line descriptions plus the extractor's `suspicious_content` flag.
+- Decision:
+  - `ExtractedInvoice` gains `other_text: str | None` (all visible text not captured in other fields: headers, notes, footers, payment instructions), required key, nullable.
+  - `CheckContext` gains optional `document_text: str | None = None` at the end. P2-T08 fills it with the PDF text layer extracted in code (pypdf, no LLM) when present, joined with `other_text`.
+  - `suspicious.py` scans `document_text` in addition to the fields it scans today. The extractor flag stays as a second signal.
+  - P2-T08 owns these edits to `agents/schemas.py`, `agents/prompts/`, `ledger/checks/base.py` and `ledger/checks/suspicious.py`, and adds tests where the phrase appears only in a footer (`other_text`) and only in the PDF text layer.
+- Rejected: Asking the model to return the full raw text (doubles output tokens per invoice); relying on the extractor flag alone (the model under injection may not flag itself).
+- Affects: planning/build-plan.md P2-T08, T-233..T-235 (tick after P2-T08)
+
+## D-035 Database trigger for posted journal immutability
+- Date: 2026-11-18
+- Context: G-2 was enforced only by the ORM guard (ledger/guard.py), which Core or raw SQL bypasses. P2-T08 and its verifier confirmed no code updates a posted entry or its lines after posting; the only status change on a posted path is pending_approval to posted, and revise/reject act on held entries only.
+- Decision: Migration 0004 adds `journal_immutable()` with BEFORE UPDATE OR DELETE row triggers on `journal_entries` (refuses when OLD.status = 'posted') and `journal_lines` (refuses when the parent entry is posted). INSERT of lines is not blocked, so posting paths that write the entry before its lines keep working. TRUNCATE (test teardown) is unaffected.
+- Rejected: Blocking line INSERT on posted entries (breaks entry-then-lines posting order).
+- Affects: api/src/bookkeeper/migrations/versions/20261118_0004_journal_immutable_trigger.py, P2-T10 tests
+
+## D-036 Demo sprint: scope cut to a 6-hour portfolio prototype
+- Date: 2026-11-18
+- Context: Owner needs a working prototype in about 6 hours for a portfolio and interview demo, Telegram first with a thin web. P1 and P2 are done (invoice intake, ten checks, auto-post with FYI, approvals). The remaining plan (P3 to P6, 16 tasks with full cards, worktrees and a blind verifier each) does not fit.
+- Decision:
+  - Process for the sprint (replaces D-031 and D-032 until the sprint ends): build directly on `preview`, no task worktrees, no full cards, no per-task verifier, no screenshot evidence, no per-batch e2e. One commit per sprint task, each after `make verify QUIET=1` is green. One blind verifier and one `make e2e QUIET=1` at the end of the sprint. Hard rules in AGENTS.md (ledger posting service, LLM proposes and code decides, role in code, templates, comment policy) still apply.
+  - Sprint tasks (see planning/build-plan.md#demo-sprint-d-036):
+    - S-1 End-to-end P2 demo test (was P3-T00).
+    - S-2 Boss assistant graph: Q&A with 3 or 4 typed read tools over `reports/`, manual entry with Confirm/Cancel, daily sales by text with Confirm, Mark paid button on bill messages (full amount, dated today) with Confirm. Reversal by chat is out.
+    - S-3 `/recap` command: on-demand template with invoices, sales, pending approvals, bills due, overdue bills, pending strangers. No scheduler.
+    - S-4 Web Journal tab (presets only, detail sheet with lines, checks and document link) and TB, P&L, BS tabs on the existing reports API.
+    - S-5 Small eval set (Ocean Fresh clean samples plus 5 traps) and a short local-run README.
+    - S-6 Final verify, e2e and blind verifier.
+  - Sprint gate rows (tick when green): T-012, T-140, T-143, T-145, T-146, T-147, T-151, T-159, T-163, T-164, T-165, T-167, T-168, T-237, T-020, T-022, T-183, T-185, T-187, T-188, T-189, T-191, T-195, T-199, T-200, T-210, T-214, T-216, T-218, T-222, T-223, T-224, T-225, T-228, T-229 (both on the reduced eval set), T-097, T-230.
+  - Deferred to after the sprint (rows stay open, expected results unchanged):
+    - F-004 opening balances form: T-045..T-049. The seed covers opening books.
+    - F-005 Excel migration: T-013, T-050..T-056.
+    - F-016.1 Z-report photo, F-016.3 replace or add, F-016.4 recap sales reminder, cash+card mismatch: T-144, T-148, T-149, T-243.
+    - F-017.2 mark paid by text and on a stated date, F-017.3 reminders, F-017.4 overdue across recaps, F-017.5 partial payment: T-152..T-157.
+    - F-018 eval rows: T-158, T-160..T-162.
+    - F-019.3 reversal by chat: T-166.
+    - F-020.3 scheduled once-per-day recap: T-169.
+    - F-021 assets and depreciation: T-170..T-174, T-242.
+    - F-022 month-end close: T-175..T-179, T-244.
+    - F-023 PDF report pack: T-180..T-182.
+    - F-024 extras: T-016 (audit trail timestamps), T-184 (10k lines performance), T-186 (custom range), T-190 (reversal link).
+    - F-025 general ledger tab: T-192..T-194.
+    - F-026.2 and F-026.3 adjusted TB and mismatch warning: T-196..T-198.
+    - F-027.3 cash flow tab: T-201 (T-202 API already ticked).
+    - F-028 analytics page: T-203..T-207.
+    - F-030.2 remaining traps and clean sets: T-099, T-128, T-211..T-213, T-215, T-217, T-219..T-221, T-226, T-227.
+    - F-031.2 compose prod profile, Caddy, fresh-clone run: T-231.
+    - T-005 and T-011 (all write paths) and T-021 (web saves for assets and opening balances): tick after deferred write paths exist.
+  - Any other open row not listed above stays open and is not a sprint gate.
+  - Open items left as is: revoked users on /settings/users, Stop hook timeout, D-029 and D-030 defaults.
+- Rejected: Keeping per-task verifiers (time cost larger than any feature); building month-end close and PDF (needs assets, scheduler and WeasyPrint, and only pays off on day 1 of a month); three separate tasks for Q&A, sales and bills (one graph with intents is less code).
+- Why: The invoice-to-books loop is already built and is the core demo. The sprint adds the boss conversation, an on-demand recap, a read-only web view of the books, and eval evidence for the "0 traps auto-posted" claim.
+- Affects: planning/build-plan.md (demo sprint section; P3 to P6 tables paused), planning/progress.md, planning/04-test-spec.md (rows deferred, no expected result changed), D-031, D-032 (suspended for the sprint)

@@ -39,8 +39,10 @@ AsAt = Annotated[dt.date, Depends(as_at_date)]
 
 
 @router.get("/trial-balance")
-async def get_trial_balance(db: Db, as_at: AsAt) -> reports.TrialBalance:
-    return await reports.trial_balance(db, as_at, adjusted=False)
+async def get_trial_balance(
+    db: Db, rng: Range, as_at: Annotated[dt.date | None, Query()] = None
+) -> reports.TrialBalance:
+    return await reports.trial_balance(db, as_at or rng.end, adjusted=False)
 
 
 @router.get("/adjusted-trial-balance")

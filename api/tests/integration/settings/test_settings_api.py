@@ -11,11 +11,10 @@ from bookkeeper.db.models import (
     Account,
     BusinessSettings,
     EntrySource,
-    EntryStatus,
-    JournalEntry,
     JournalLine,
 )
 from bookkeeper.settings_service import get_settings
+from tests.support.factories import account, post
 
 pytestmark = pytest.mark.integration
 
@@ -123,42 +122,18 @@ async def test_t036_posted_entry_not_recalculated_on_gst_change(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:
     await client.put("/api/settings", json=FULL)
-    codes = {a.name: a.id for a in (await db_session.scalars(select(Account))).all()}
-    entry = JournalEntry(
-        entry_no=1043,
-        date=dt.date(2026, 11, 10),
+    entry = await post(
+        db_session,
+        dt.date(2026, 11, 10),
+        [
+            ("COGS Seafood", "400.00", "0"),
+            ("Input GST", "36.00", "0"),
+            ("Accounts Payable", "0", "436.00"),
+        ],
         description="Ocean Fresh INV-1043",
         source=EntrySource.AUTO,
-        status=EntryStatus.POSTED,
-        posted_at=dt.datetime(2026, 11, 10, 2, 0, tzinfo=dt.UTC),
     )
-    db_session.add(entry)
-    await db_session.flush()
-    db_session.add_all(
-        [
-            JournalLine(
-                entry_id=entry.id,
-                line_no=1,
-                account_id=codes["COGS Seafood"],
-                debit=Decimal("400.00"),
-                credit=Decimal("0"),
-            ),
-            JournalLine(
-                entry_id=entry.id,
-                line_no=2,
-                account_id=codes["Input GST"],
-                debit=Decimal("36.00"),
-                credit=Decimal("0"),
-            ),
-            JournalLine(
-                entry_id=entry.id,
-                line_no=3,
-                account_id=codes["Accounts Payable"],
-                debit=Decimal("0"),
-                credit=Decimal("436.00"),
-            ),
-        ]
-    )
+    gst_account = await account(db_session, "Input GST")
     await db_session.commit()
 
     res = await client.put("/api/settings", json={**FULL, "gst_rate": "8"})
@@ -167,7 +142,7 @@ async def test_t036_posted_entry_not_recalculated_on_gst_change(
     gst_line = await db_session.scalar(
         select(JournalLine.debit)
         .where(JournalLine.entry_id == entry.id)
-        .where(JournalLine.account_id == codes["Input GST"])
+        .where(JournalLine.account_id == gst_account.id)
         .execution_options(populate_existing=True)
     )
     assert gst_line == Decimal("36.00")

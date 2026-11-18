@@ -1,4 +1,7 @@
-import { BOT_USERNAME, configureBusiness, expect, signIn, test } from './fixtures.ts'
+import { expect, test } from './fixtures.ts'
+import { signIn } from './support/auth.ts'
+import { BOT_USERNAME } from './support/env.ts'
+import { configureBusiness } from './support/seed.ts'
 
 const telegramUrl = `https://t.me/${BOT_USERNAME}`
 

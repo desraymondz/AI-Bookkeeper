@@ -11,6 +11,11 @@ AI Bookkeeper: a Telegram bookkeeper for one small business (demo: Singapore caf
 | Purpose | Root | `api/` | `web/` |
 | --- | --- | --- | --- |
 | Install | `make setup` | `uv sync` | `pnpm install` |
+| Sync (locked) | `make sync` | `uv sync --locked` | `pnpm install --frozen-lockfile` |
+| Deps check | `make deps-check` | `uv lock --check` | `pnpm install --frozen-lockfile --lockfile-only` |
+| Verify | `make verify` (deps-check, lint, typecheck, test, web build) | | |
+| Git hooks | `make hooks` (runs `make sync` after a merge or checkout that changes a lockfile) | | |
+| Worktrees | `scripts/wt.sh new <TASK-ID>`, `scripts/wt.sh integrate`, `scripts/wt.sh sync-all` | | |
 | DB | `make db` then `make migrate` | `uv run alembic upgrade head` | |
 | Dev | `make api`, `make web`, `make tunnel`, `make webhook` | `uv run uvicorn bookkeeper.main:app --reload --port 8000` | `pnpm dev` |
 | Lint | `make lint` | `uv run ruff check .` | `pnpm check` |
@@ -53,7 +58,10 @@ AI Bookkeeper: a Telegram bookkeeper for one small business (demo: Singapore caf
 
 ## Git workflow
 - `main` = production, `preview` = integration.
-- Task branches `task/<phase>-<task-id>` off `preview`; one commit per task.
+- Task branches `task/<phase>-<task-id>` off `preview`; one commit per task. Create them with `scripts/wt.sh new <TASK-ID>`.
+- Builder gate before reporting (See `planning/decisions.md#D-031`): isolated tests for the task's T-xxx green, `scripts/wt.sh integrate` (merges latest `preview`, then `make sync`), resolve conflicts, full `make verify` green, commit. The report states the integrated `preview` SHA.
+- Orchestrator merges only if `preview` is an ancestor of the task branch. Verifiers run `make verify` on the integrated branch.
+- A dependency change commits its lockfile. Routers register through `api/src/bookkeeper/routes.py`; tests use the harness in `api/tests/support/` and `web/e2e/support/`.
 - Never commit `.env*` except `.env.example`. Never commit `storage/` contents.
 
 ## Definition of done

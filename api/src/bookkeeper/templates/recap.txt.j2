@@ -1,0 +1,10 @@
+{% if quiet %}Quiet day, {{ day }}: nothing logged, pending, due or overdue.{% else %}Recap for {{ day }}
+Invoices logged: {{ invoice_count }}, total {{ invoice_total }}
+Sales booked: {{ sales_total }}
+Pending approvals: {{ pending_count }}
+{% for item in old_pending %}Waiting over 24 hours: {{ item }}
+{% endfor %}{% if due_soon %}Due in the next {{ within }} days:
+{% for bill in due_soon %}{{ bill }}
+{% endfor %}{% endif %}{% if overdue %}Overdue:
+{% for bill in overdue %}{{ bill }}
+{% endfor %}{% endif %}{% if strangers %}Strangers waiting: {{ strangers | join(", ") }}{% endif %}{% endif %}

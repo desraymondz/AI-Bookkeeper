@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# See planning/decisions.md#D-031
+exec "$(dirname "$0")/sync-if-deps-changed" ORIG_HEAD HEAD

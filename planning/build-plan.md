@@ -50,6 +50,8 @@ Batches: **B1** T01 ‖ T02 · **B2** T03 ‖ T04 ‖ T05 · **B3** T06 ‖ T07 
 
 Batches: **B4** T01 ‖ T05 ‖ T06 ‖ T07 · **B5** T02 ‖ T03 ‖ T04 · **B6** T08 ‖ T09
 
+> Paused by D-036: P3 to P6 below are replaced by the demo sprint at the end of this file. Deferred items return after the sprint.
+
 ### P3 Boss operations. Demo: boss sends sales, marks a bill paid, asks "how much did I spend on seafood last month", gets 9pm recap.
 | ID | Task | Features | Tests | Depends |
 |---|---|---|---|---|
@@ -173,8 +175,104 @@ UI change: no
 
 ## Verifier notes carried forward
 - Done (migration 0002): `journal_lines` and `check_results` FKs are RESTRICT.
-- Open: DB trigger refusing UPDATE/DELETE on posted journal entries and lines (draft in P1-T03 report). Decide after P2-T08 shows which columns change after posting. ORM guard (ledger/guard.py) does not cover Core/raw SQL; never write journal tables outside `bookkeeper.ledger`.
+- Done (D-035, migration 0004): DB trigger refusing UPDATE/DELETE on posted journal entries and lines. ORM guard (ledger/guard.py) does not cover Core/raw SQL; never write journal tables outside `bookkeeper.ledger`.
 - P4-T01: depreciation entries need an `asset_id` link on journal entries for per-asset accumulated depreciation (F-021.3); request schema change.
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
-- P2-T02: switch cash-flow payables detection from account name to a subtype (D-030 open item).
+- Open (P2-T09 verifier): a revoked user vanishes from /settings/users on reload because /api/users omits non-boss users without a telegram id; T-073 passes in-session only. Decide in P3 whether revoked users stay listed (API change in web_api/users.py) and add a Revoke e2e.
+- P3-T01: boss assistant text handler must run before approvals.matches_text, or approvals must match only while approvals.awaiting_edit(ctx); the router has no fall-through (P2-T08 verifier).
+- T-140 and T-237 tick in P3-T04: recap calls invoice_pipeline.pending_items and stranger.pending_strangers.
+- T-237 ticks in P3-T04: recap must list pending strangers via telegram.handlers.stranger.pending_strangers(session).
+- Done (P2-T02 + migration 0003): cash-flow payables detected by subtype trade_payable.
+- Fixed in P2-T09: web/src/features/auth/auth.test.tsx T-024 fails under parallel load (config mock called once, likely a request leaking from the previous test). Passes alone 5/5. Fix in P2-T09 (first web card): scope the mock to the test render or await idle queries before asserting.
+- Open (P2-T00 verifier): web/e2e/support/seed.ts `seedPostingsFor` still raw-inserts journal rows (moved unchanged from db.ts; D-031 says no raw journal inserts). New e2e must not use it; replace with a ledger-service path (e.g. a `bk` seed command) by P5-T01.
+
+## P2 onward: integration rules (D-031)
+P2-T00 runs first and alone; every later P2 card assumes its harness.
+
+### P2-T00  Integration harness
+Feature: none (process, D-031)     Tests: harness self-tests only
+Owns files: api/src/bookkeeper/routes.py, api/src/bookkeeper/main.py, api/src/bookkeeper/agents/llm.py (LLMClient Protocol only), api/tests/support/, api/tests/conftest.py, migration of existing task-local helpers (tests/integration/settings/app.py, auth conftest, reports helpers) onto the harness, web/e2e/support/, web/playwright.config.ts, Makefile, scripts/wt.sh, scripts/git-hooks/, AGENTS.md (commands, git workflow)
+Verify: make deps-check && make verify && make e2e
+UI change: no
+
+### Builder rules, added for P2 onward
+Superseded by planning/builder-rules.md and planning/verifier-rules.md (D-032). Prompts point to those files.
+> - Before reporting: (1) your T-xxx tests green in isolation; (2) `scripts/wt.sh integrate` (merges latest `preview`, runs `make sync`); (3) resolve conflicts, keeping both sides of route registry and lockfile changes; (4) `make verify` green on the integrated branch; (5) commit the merge. State the integrated `preview` SHA in the report.
+> - Register routers only by appending to `api/src/bookkeeper/routes.py`. Integration tests use `tests/support` (real `create_app`, stub boss, factories through the ledger service); no task-local app builders, fakes or raw journal inserts.
+> - New dependencies: add them and commit the updated lockfile in the same commit; `make deps-check` must pass.
+
+## P2 full cards
+All cards: Depends on P2-T00. Verify = isolated `uv run pytest <scope>` first, then the D-031 gate (`scripts/wt.sh integrate`, `make verify`; plus `make e2e` for UI cards). Integration tests use `tests/support` fixtures named below; Telegram tests post real update JSON to `/telegram/webhook` through `client` with `RecordingBot` injected.
+
+### P2-T01  Webhook, routing, notify, templates
+Feature: F-009, G-5 (T-014)     Tests: T-014, T-078, T-079, T-080, T-081
+Owns: api/src/bookkeeper/telegram/{webhook,app,router,notify,keyboards}.py, api/src/bookkeeper/templates/, tests/{unit,integration}/telegram/
+Registry: append webhook router to `PUBLIC_ROUTERS`. Exposes `notify.to_boss(...)`, `notify.to_sender(...)` (the only outbound path) and a handler registry other tasks append to (`telegram/handlers/__init__.py` list).
+Fixtures: client, RecordingBot, telegram_updates, settings_row, supplier.
+
+### P2-T02  Linking, suppliers and users API
+Feature: F-006, F-007, F-008 (api/bot)     Tests: T-058..T-062, T-064, T-068..T-070, T-075..T-077
+Owns: api/src/bookkeeper/web_api/{suppliers,users,links}.py, api/src/bookkeeper/telegram/handlers/start.py, tests
+Registry: append suppliers, users, links routers to `PROTECTED_ROUTERS`; append `/start` handler.
+Also: D-030 open item, cash-flow payables by subtype (`trade_payable` on Accounts Payable in coa.py, reports/statements.py rule) with T-202 still green.
+
+### P2-T03  Stranger handling
+Feature: F-010     Tests: T-082..T-089, T-237, T-238
+Owns: api/src/bookkeeper/telegram/handlers/stranger.py, templates/stranger*, tests
+Registry: append stranger handler and its callback handler.
+
+### P2-T04  Invoice intake and storage
+Feature: F-011     Tests: T-090..T-096, T-245
+Owns: api/src/bookkeeper/storage/, api/src/bookkeeper/telegram/handlers/supplier_docs.py, api/src/bookkeeper/web_api/documents.py (boss-only file download), tests
+Registry: append documents router to `PROTECTED_ROUTERS`; append supplier document handler. Hands off to `invoice_pipeline.start(document_id)` (stub interface until P2-T08; record calls in tests).
+
+### P2-T05  Checks F-013.1 to F-013.5
+Feature: F-013     Tests: T-105..T-116, T-125, T-240, T-036 (second half)
+Owns: api/src/bookkeeper/ledger/checks/{__init__,base,known_supplier,arithmetic,gst,balanced,duplicate}.py, tests
+`checks/__init__.py` defines `CheckResult`, `CheckContext`, and the ordered `CHECKS` list; P2-T06 appends.
+
+### P2-T06  Checks F-013.6 to F-013.10
+Feature: F-013     Tests: T-117..T-124, T-233..T-235, T-239
+Owns: api/src/bookkeeper/ledger/checks/{revision,price_change,period,sanity,suspicious}.py, tests
+Uses the `CheckContext` from P2-T05; if P2-T05 is not merged when this starts, both tasks code against the interface in this card: `CheckContext(session, settings, supplier, sender_user, invoice: ExtractedInvoice, document, proposed_entry)`, `CheckResult(code, passed, detail)`, each check `async def run(ctx) -> CheckResult`.
+
+### P2-T07  Gemini client, extraction, proposal
+Feature: F-012, G-7     Tests: T-098, T-100..T-104, T-044
+Owns: api/src/bookkeeper/agents/{gemini,extract,propose,schemas}.py, agents/prompts/, tests
+Implements `LLMClient` from P2-T00 with google-genai; `ExtractedInvoice` schema in agents/schemas.py (shared with P2-T05/T06 through the interface above). Tests use FakeLLMClient only.
+
+### P2-T08  Invoice LangGraph and approvals
+Feature: F-014, F-015, G-4, G-7     Tests: T-010, T-011 (invoice path), T-018, T-019, T-126, T-127, T-129..T-142, T-241
+Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/invoice_pipeline.py, api/src/bookkeeper/telegram/handlers/approvals.py, templates/invoice*, tests
+Closes the F-013.10 document-text gap per D-034 (may edit agents/schemas.py, agents/prompts/, ledger/checks/base.py, ledger/checks/suspicious.py). Routes every model tool call through agents/tool_gate.run_tool_call (T-077). Handles a repeat invoice_pipeline.start on the same document and audits the re-send with its sender (D-033). Sets CheckContext.current_invoice_id when an Invoice row for the document already exists (P2-T05 duplicate rule excludes it). Depends on P2-T01, T04, T05, T06, T07. Decides the open DB-trigger item (build-plan notes) and reports which posted-entry columns it updates.
+
+### P2-T09  Web suppliers, users, Connect Telegram
+Feature: F-006..F-008 (web)     Tests: T-057, T-063, T-065..T-067, T-071..T-074
+Owns: web/src/features/{suppliers,users,telegram}/, routes for /settings/{suppliers,users,telegram}, web/e2e/{suppliers,users,telegram}.spec.ts
+Depends on P2-T02. Uses web/e2e/support only.
+
+Batches: B4 = T01 ‖ T05 ‖ T06 ‖ T07; B5 = T02 ‖ T03 ‖ T04; B6 = T08 ‖ T09.
+
+### P2-T10  Invoice pipeline hardening (from P2-T08 verifier)
+Feature: G-2, G-7, F-015     Tests: T-005 (DB layer only), regression of T-129..T-139
+Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/telegram/handlers/approvals.py, api/src/bookkeeper/agents/services.py, api/src/bookkeeper/main.py (lifespan close only), tests/integration/{ledger,invoices}/
+1. Tests that the D-035 trigger refuses raw SQL (`text()`) UPDATE and DELETE on a posted entry and its lines, and allows the pending_approval to posted transition and held-entry line rewrites.
+2. `post()` on LedgerError: notify the boss with a template and audit it; never leave a silent stall.
+3. Approval decision and `invoice_pipeline.resume` in one unit: if resume raises, the decision is not marked and the boss can press again.
+4. Close the lazy checkpointer pool and LLM client in the app lifespan.
+5. approvals.matches_text claims boss text only while an edit is awaited.
+
+## Demo sprint (D-036)
+Process: build on `preview` directly, one commit per task after `make verify QUIET=1`. No worktrees, cards, per-task verifiers or screenshots. One blind verifier and `make e2e QUIET=1` in S-6. AGENTS.md hard rules and comment policy still apply. Total budget about 6 hours.
+
+| ID | Task | Gate rows | Budget |
+|---|---|---|---|
+| S-1 | End-to-end P2 demo test: link Ocean Fresh by /start token, INV-1043 auto-posts with bill and FYI, trap held, Approve posts. Also confirms T-012 (supplier injection text gets an ack only). | T-012 | 45m |
+| S-2 | Boss assistant (`agents/boss.py` intent parse, `reports/assistant.py` read tools, `telegram/handlers/boss.py`; held PROPOSED entry is the Confirm interrupt, no LangGraph): intents question, manual entry, sales, mark paid. Read tools are typed functions over `reports/` (spend by account or supplier for a range, sales for a range, open bills, account balance). Proposals post only through the ledger service after a Confirm button; Cancel posts nothing. Sales by text only (GST-inclusive split per F-016.2). Mark paid button on bill and FYI messages, full amount, dated today. Handler order: boss text runs after approvals while an edit is awaited (build-plan notes, P2-T08 verifier). | T-143, T-145, T-146, T-147, T-151, T-159, T-163, T-164, T-165 | 2h |
+| S-3 | `/recap` command for the boss: template with invoices logged today (count, total), sales booked, pending approvals via `invoice_pipeline.pending_items`, bills due in N days, overdue bills, pending strangers via `stranger.pending_strangers`; one line when nothing happened. No scheduler. | T-140, T-167, T-168, T-237 | 30m |
+| S-4 | Web: `/accounting/journal` (preset ranges, table, debit and credit totals, detail sheet with lines, checks failed first, document link), `/accounting/trial-balance`, `/accounting/pnl`, `/accounting/balance-sheet` on the existing reports API. Read-only. Uses web/e2e/support only; no new raw journal inserts. | T-020, T-022, T-183, T-185, T-187, T-188, T-189, T-191, T-195, T-199, T-200 | 1.5h |
+| S-5 | Eval: Ocean Fresh clean samples, traps duplicate file, wrong total, unknown supplier, price change, prompt injection; `expected.toml` (stdlib tomllib, no new dependency); `bk eval` prints the table and exits non-zero on any fail. README section: credentials, `make db migrate`, `make api web tunnel webhook`, `bk seed`, `bk eval`, and a "Deferred to v1" list from D-036. `make eval` with real creds runs only on owner OK. | T-097, T-210, T-214, T-216, T-218, T-222, T-223, T-224, T-225, T-228, T-229, T-230 | 1h |
+| S-6 | `make verify QUIET=1`, `make e2e QUIET=1`, one blind verifier over the sprint diff against D-036 gate rows, tick rows, progress, handoff. | all above | 15m |
+
+Order: S-1, S-2, S-3, S-4, S-5, S-6. If time runs short, drop S-4 statements tabs first, then sales in S-2.
