@@ -5,6 +5,7 @@ from bookkeeper.telegram import webhook as telegram_webhook
 from bookkeeper.telegram.handlers import (
     approvals,
     boss,
+    recap,
     start,
     stranger,
     supplier_docs,
@@ -37,7 +38,7 @@ PROTECTED_ROUTERS: list[APIRouter] = [
     links_api.router,
 ]
 
-HANDLER_MODULES = [start, supplier_docs, supplier_text, stranger, approvals, boss]
+HANDLER_MODULES = [start, supplier_docs, supplier_text, stranger, approvals, recap, boss]
 boss.register()
 
 

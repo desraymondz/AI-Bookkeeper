@@ -227,7 +227,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | T-137 | F-015.4 | e2e | Given a pending card When the boss presses Reject and answers no Then nothing posts and nothing is sent to the supplier | [x] |
 | T-138 | F-015.5 | e2e | Given a duplicate of JE-00031 When the card is shown Then it names JE-00031 and offers Ignore duplicate / Post anyway; Ignore duplicate posts nothing, Post anyway posts it | [x] |
 | T-139 | F-015.6 | e2e | Given INV-1043 posted at 436.00 and a revised INV-1043 at 470.88 When the boss approves the revision card (which shows old vs new) Then a reversal of the original and a new 470.88 entry post, linked, and the bill amount becomes 470.88 | [x] |
-| T-140 | F-015.7 | integration | Given one pending item 25 hours old and one 2 hours old When the daily recap is built Then the 25-hour item is listed as pending | [ ] |
+| T-140 | F-015.7 | integration | Given one pending item 25 hours old and one 2 hours old When the daily recap is built Then the 25-hour item is listed as pending | [x] |
 | T-141 | F-015.8 | e2e | Given a pending card When a supplier user or a stranger sends the same Approve, Edit or Reject callback Then nothing changes and the item stays pending | [x] |
 | T-142 | F-015.8 | e2e | Given stranger, close, sales and payment buttons When pressed by anyone other than the boss's Telegram id Then nothing happens | [x] |
 
@@ -279,8 +279,8 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
-| T-167 | F-020.1 | integration | Given today had 3 invoices totalling 1,308.00, sales 1,850.00, 1 pending approval, 1 bill due within 3 days, 1 overdue bill and 1 stranger When 21:00 Asia/Singapore arrives Then the recap lists each of those | [ ] |
-| T-168 | F-020.2 | integration | Given nothing happened today and nothing is pending, due or overdue When the recap runs Then it is a single line saying so | [ ] |
+| T-167 | F-020.1 | integration | Given today had 3 invoices totalling 1,308.00, sales 1,850.00, 1 pending approval, 1 bill due within 3 days, 1 overdue bill and 1 stranger When 21:00 Asia/Singapore arrives Then the recap lists each of those | [x] |
+| T-168 | F-020.2 | integration | Given nothing happened today and nothing is pending, due or overdue When the recap runs Then it is a single line saying so | [x] |
 | T-169 | F-020.3 | integration | Given the recap was sent at 21:00 When the server restarts at 21:01 and the scheduler runs again Then no second recap is sent that day | [ ] |
 
 ### F-021 Fixed assets and depreciation
@@ -406,7 +406,7 @@ Conventions: "boss" is the Telegram user bound to the boss record and the Google
 | ID | Feature | Type | Given / When / Then | Status |
 | --- | --- | --- | --- | --- |
 | T-236 | G-3 | integration | Given Oct 2026 is locked and Nov 2026 is open When a held Oct invoice is approved Then the entry is dated 1 Nov 2026 with a note naming the original date 15 Oct 2026 | [x] |
-| T-237 | F-010.4 | e2e | Given a stranger still pending (boss has not decided) When they message again 30 hours later Then they get no reply, the boss gets no new card, and the stranger is listed in that day's recap | [ ] |
+| T-237 | F-010.4 | e2e | Given a stranger still pending (boss has not decided) When they message again 30 hours later Then they get no reply, the boss gets no new card, and the stranger is listed in that day's recap | [x] |
 | T-238 | F-010.5 | integration | Given a stranger sends a PDF When it is handled Then no file is written to storage and no document row is created | [x] |
 | T-239 | F-013.6 | unit | Given an earlier Ocean Fresh INV-1043 total 436.00 When INV-1043 arrives again with total 457.80 Then Revision fails and Duplicate passes | [x] |
 | T-240 | F-013.5 | unit | Given duplicate window 180 days and an earlier invoice dated 1 Nov 2026 When a same supplier, same total, different number invoice dated 30 Apr 2027 arrives Then Duplicate fails; dated 1 May 2027 Then Duplicate passes (window measured on invoice date) | [x] |
