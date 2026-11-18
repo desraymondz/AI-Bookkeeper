@@ -62,6 +62,7 @@ CONFIRM, EDIT, CANCEL, PAY_CONFIRM, PAY = "bx_ok", "bx_ed", "bx_no", "bp_ok", "b
 CALLBACKS = frozenset({CONFIRM, EDIT, CANCEL, PAY_CONFIRM, PAY})
 BILLS_COMMAND = "/bills"
 MAX_BILL_BUTTONS = 10
+MAX_CLARIFY = 200
 
 
 def _text(update: Update) -> str | None:
@@ -100,6 +101,10 @@ async def _expense_accounts(ctx: HandlerContext) -> list[Account]:
         .order_by(Account.code)
     )
     return list(rows)
+
+
+def _clarify(intent: BossIntent) -> str | None:
+    return (intent.clarify or "")[:MAX_CLARIFY] or None
 
 
 def _line_text(line: ProposedLine) -> str:
@@ -204,7 +209,7 @@ async def _answer(ctx: HandlerContext, intent: BossIntent) -> None:
     elif intent.question == "balance" and intent.subject:
         call = ToolCall("balance", {"subject": intent.subject})
     else:
-        await ctx.reply(render("boss_unclear", question=intent.clarify))
+        await ctx.reply(render("boss_unclear", question=_clarify(intent)))
         return
     outcome = await run_tool_call(ctx.session, ctx.sender, call, registry_tools)
     result: tools.Amount | None = outcome.value if outcome.ran else None
@@ -241,7 +246,7 @@ async def _manual(ctx: HandlerContext, intent: BossIntent, today: dt.date) -> No
             (a for a in expense if wanted in a.name.lower()), None
         )
     if intent.amount is None or intent.amount <= 0:
-        await ctx.reply(render("boss_unclear", question=intent.clarify))
+        await ctx.reply(render("boss_unclear", question=_clarify(intent)))
         return
     if match is None:
         names = ", ".join(a.name for a in expense)
@@ -291,7 +296,7 @@ async def handle_text(ctx: HandlerContext) -> None:
         case "sales" if intent.amount is not None:
             await _sales(ctx, intent.amount, intent.cash, intent.card, intent.date or today)
         case "unclear" | "sales":
-            await ctx.reply(render("boss_unclear", question=(intent.clarify or "")[:200] or None))
+            await ctx.reply(render("boss_unclear", question=_clarify(intent)))
         case _:
             await ctx.reply(render("boss_out_of_scope"))
 
@@ -377,9 +382,12 @@ async def handle_callback(ctx: HandlerContext) -> None:
         await ctx.reply(render("boss_cancelled" if action == CANCEL else "boss_edit"))
         return
     if action == PAY_CONFIRM and len(args) > 1:
-        bill = await ctx.session.get(Bill, int(args[1]))
+        bill = await ctx.session.get(
+            Bill, int(args[1]), with_for_update=True, populate_existing=True
+        )
         if bill is None or bill.status != BillStatus.OPEN:
             await reject_held(ctx.session, entry.id)
+            await _strip_buttons(ctx, "Cancelled.")
             await ctx.reply(render("boss_handled"))
             return
     try:
@@ -388,10 +396,15 @@ async def handle_callback(ctx: HandlerContext) -> None:
         )
     except LedgerError:
         log.exception("boss proposal %s refused", entry.id)
+        await _strip_buttons(ctx, "Not posted.")
         await ctx.reply(render("boss_cancelled"))
         return
-    if action == PAY_CONFIRM and len(args) > 1:
-        await _record_payment(ctx, posted, int(args[1]))
+    if (
+        action == PAY_CONFIRM
+        and len(args) > 1
+        and not await _record_payment(ctx, posted, int(args[1]))
+    ):
+        raise LedgerError(f"bill {args[1]} closed while entry {entry.id} was posting")
     entry_no = format_entry_no(posted.entry_no) if posted.entry_no is not None else ""
     await _strip_buttons(ctx, "Confirmed.")
     await ctx.reply(

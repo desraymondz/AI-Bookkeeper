@@ -1,6 +1,6 @@
 # Progress
 
-Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. Next: S-1 end-to-end demo test, then S-2 to S-6 in planning/build-plan.md#demo-sprint-d-036. P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
+Phase: Demo sprint per D-036 (2026-11-18): P3 to P6 paused, 6-hour portfolio prototype, Telegram first with thin web. S-1 to S-6 DONE. Next: owner runs `make eval` with real Gemini to tick the eval gate rows, then the live Telegram demo (README). P1 and P2 DONE (api 428, web 37, e2e 33). D-031/D-032 suspended for the sprint.
 
 | Doc | Status |
 | --- | --- |
@@ -65,3 +65,13 @@ Open questions (re-check at build time, see 03-tech-stack.md section 14):
 ## Demo sprint (D-036)
 - Scope cut recorded 2026-11-18. Sprint tasks S-1 to S-6 in planning/build-plan.md; gate and deferred rows in planning/decisions.md#D-036.
 - Deferred: opening balances form, Excel migration, scheduler and reminders, partial and text payments, reversal by chat, assets, month-end close, PDF pack, GL, ATB and cash-flow tabs, analytics, most traps, prod self-host.
+
+| Date | Sprint task | Result |
+| --- | --- | --- |
+| 2026-11-18 | S-1 end-to-end demo test | 3ba244c; link by /start, auto-post with bill and FYI, trap held, Approve posts; T-012 ticked |
+| 2026-11-18 | S-2 boss assistant | 4e3ebf9; agents/boss.py, reports/assistant.py, handlers/boss.py (registered last via boss.register()); held PROPOSED entry is the Confirm step, no LangGraph; T-143, T-145..T-147, T-151, T-159, T-163..T-165 ticked |
+| 2026-11-18 | S-3 /recap | cc14d7d; reports/recap.py (gross sales incl. Output GST), handlers/recap.py; on demand only, no scheduler; T-140, T-167, T-168, T-237 ticked |
+| 2026-11-18 | S-4 web books | 1618f77; Journal, entry sheet (lines, checks, PDF, reversal, audit), TB, P&L, BS; TB API takes range end; deferred tabs hidden; T-020, T-022, T-183, T-185, T-187..T-189, T-191, T-195, T-199, T-200 ticked |
+| 2026-11-18 | S-5 eval and README | e4fb0c6; eval/samples, expected.toml, eval/runner.py (scratch DB, RecordingBot), bk eval, bk set-webhook, bk webhook-info, scripts/dev-tunnel.sh, README; T-223, T-224, T-230 ticked; real-Gemini eval rows wait for `make eval` with owner OK |
+| 2026-11-18 | S-6 checks | make e2e QUIET=1 33 passed; blind verifier PASS with minor issues; fixed: bill row locked on pay Confirm and payment recorded or rolled back, buttons stripped on handled paths, LLM clarify capped, web warning uses API difference (no book maths), double Mark paid test, T-187 API test; make verify QUIET=1 green (api 454, web 46) |
+

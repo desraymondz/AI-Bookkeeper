@@ -58,7 +58,11 @@ export function TrialBalancePage() {
     >
       {data ? (
         <>
-          <TotalsMismatch debit={data.total_debit} credit={data.total_credit} />
+          <TotalsMismatch
+            debit={data.total_debit}
+            credit={data.total_credit}
+            difference={data.difference}
+          />
           <Table>
             <TableHeader>
               <TableRow>

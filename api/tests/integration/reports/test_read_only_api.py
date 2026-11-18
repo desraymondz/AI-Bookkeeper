@@ -41,3 +41,18 @@ async def test_t020_web_api_refuses_book_writes(
     assert await _counts(db_session) == before
     res = await client.get("/api/journal/JE-00001")
     assert res.status_code == 200
+
+
+async def test_t187_year_to_date_uses_financial_year_start(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    from bookkeeper.ledger.periods import business_today
+    from tests.support.factories import settings_row
+
+    await settings_row(db_session, fy_start_month=4)
+    today = await business_today(db_session)
+    res = await client.get("/api/journal", params={"preset": "ytd"})
+    assert res.status_code == 200
+    year = today.year if today.month >= 4 else today.year - 1
+    assert res.json()["start"] == f"{year}-04-01"
+    assert res.json()["end"] == today.isoformat()

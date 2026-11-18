@@ -1,26 +1,28 @@
 import { WarningIcon } from '@phosphor-icons/react'
+import { formatMoney, isZero } from '@/lib/format'
 
-// See planning/02-design.md#accounting-page (TB imbalance warning)
+// See planning/02-design.md#accounting-page (TB imbalance warning) and AGENTS.md (report numbers)
 
-function cents(value: string): bigint {
-  const negative = value.trim().startsWith('-')
-  const [whole = '0', fraction = ''] = value.trim().replace(/^[-+]/, '').split('.')
-  const amount = BigInt(whole || '0') * 100n + BigInt(`${fraction}00`.slice(0, 2))
-  return negative ? -amount : amount
+type TotalsMismatchProps = {
+  debit: string
+  credit: string
+  difference?: string
 }
 
-export function TotalsMismatch({ debit, credit }: { debit: string; credit: string }) {
-  const diff = cents(debit) - cents(credit)
-  if (diff === 0n) return null
-  const abs = diff < 0n ? -diff : diff
-  const text = `${abs / 100n}.${(abs % 100n).toString().padStart(2, '0')}`
+export function TotalsMismatch({ debit, credit, difference }: TotalsMismatchProps) {
+  const mismatch = difference !== undefined ? !isZero(difference) : debit !== credit
+  if (!mismatch) return null
+  const text =
+    difference !== undefined
+      ? `Totals do not match. Difference: S$${formatMoney(difference, { parens: false })}.`
+      : `Totals do not match. Total debit ${formatMoney(debit)}, total credit ${formatMoney(credit)}.`
   return (
     <div
       role="alert"
       className="flex items-center gap-2 border border-destructive px-3 py-2 text-sm"
     >
       <WarningIcon aria-hidden className="size-4" />
-      Totals do not match. Difference: S${text}.
+      {text}
     </div>
   )
 }

@@ -201,3 +201,23 @@ async def test_edit_prompt_reply_still_goes_to_approvals(env: Env) -> None:
     await env.say("gst is 36", reply=True)
     assert len(env.llm.calls_for("assistant")) == calls_before
     assert env.llm.calls_for("revise")
+
+
+async def test_two_mark_paid_proposals_pay_the_bill_once(env: Env) -> None:
+    await env.send(make_invoice())
+    await env.say("/bills", reply=False)
+    [label] = list(env.buttons())
+    pay = env.buttons()[label]
+    await env.press(pay)
+    first = env.buttons()["Confirm"]
+    await env.press(pay)
+    second = env.buttons()["Confirm"]
+    assert first != second
+    await env.press(first)
+    await env.press(second)
+    [bill] = await env.bills()
+    assert bill.status == BillStatus.PAID
+    assert bill.paid_amount == D("436.00")
+    assert len((await env.session.scalars(select(Payment))).all()) == 1
+    assert len(await env.entries(EntryStatus.POSTED)) == 2
+    assert env.to_boss()[-1].text == "That one is already handled."
