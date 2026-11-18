@@ -3,8 +3,9 @@
 import argparse
 import asyncio
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Coroutine, Sequence
 from pathlib import Path
+from typing import Any
 
 from bookkeeper.config import ConfigError, load_settings
 
@@ -56,19 +57,72 @@ def _seed(_: argparse.Namespace) -> int:
         return 1
 
 
-def _not_implemented(name: str) -> Callable[[argparse.Namespace], int]:
+async def _eval_async() -> int:
+    from eval.runner import format_table, run_eval
+
+    settings = load_settings()
+    report = await run_eval(settings, settings.database_url)
+    print(format_table(report))
+    return 0 if report.passed else 1
+
+
+def _eval(_: argparse.Namespace) -> int:
+    api_dir = str(Path(__file__).resolve().parents[2])
+    if api_dir not in sys.path:
+        sys.path.insert(0, api_dir)
+    try:
+        return asyncio.run(_eval_async())
+    except ConfigError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+
+WEBHOOK_PATH = "/telegram/webhook"
+
+
+async def _set_webhook_async() -> int:
+    from telegram import Bot
+
+    settings = load_settings()
+    url = f"{settings.public_base_url.rstrip('/')}{WEBHOOK_PATH}"
+    async with Bot(settings.telegram_bot_token) as bot:
+        await bot.set_webhook(
+            url=url,
+            secret_token=settings.telegram_webhook_secret,
+            allowed_updates=["message", "callback_query"],
+        )
+    print(f"Webhook set to {url}.")
+    return 0
+
+
+async def _webhook_info_async() -> int:
+    from telegram import Bot
+
+    settings = load_settings()
+    async with Bot(settings.telegram_bot_token) as bot:
+        info = await bot.get_webhook_info()
+    print(f"url={info.url or '(none)'} pending={info.pending_update_count}")
+    if info.last_error_message:
+        print(f"last error: {info.last_error_message}")
+    return 0
+
+
+def _run(coro_fn: Callable[[], Coroutine[Any, Any, int]]) -> Callable[[argparse.Namespace], int]:
     def run(_: argparse.Namespace) -> int:
-        print(f"bk {name}: not implemented yet.", file=sys.stderr)
-        return 2
+        try:
+            return asyncio.run(coro_fn())
+        except ConfigError as exc:
+            print(exc, file=sys.stderr)
+            return 1
 
     return run
 
 
 COMMANDS: dict[str, tuple[str, Callable[[argparse.Namespace], int]]] = {
     "seed": ("Seed the demo cafe", _seed),
-    "eval": ("Run the eval harness", _not_implemented("eval")),
-    "set-webhook": ("Register the Telegram webhook", _not_implemented("set-webhook")),
-    "webhook-info": ("Show Telegram webhook status", _not_implemented("webhook-info")),
+    "eval": ("Run the eval harness", _eval),
+    "set-webhook": ("Register the Telegram webhook", _run(_set_webhook_async)),
+    "webhook-info": ("Show Telegram webhook status", _run(_webhook_info_async)),
     "check-env": ("Check required environment variables", _check_env),
 }
 

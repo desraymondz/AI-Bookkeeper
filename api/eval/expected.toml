@@ -1,0 +1,43 @@
+# See planning/04-test-spec.md (T-210 to T-229) and planning/decisions.md#D-036
+
+[[sample]]
+name = "clean INV-1043"
+invoice = "inv_1043"
+sender = "supplier"
+expected = "auto_posted"
+
+[[sample]]
+name = "clean INV-1044"
+invoice = "inv_1044"
+sender = "supplier"
+expected = "auto_posted"
+
+[[sample]]
+name = "trap exact duplicate file"
+invoice = "inv_1043"
+sender = "supplier"
+expected = "held:duplicate"
+
+[[sample]]
+name = "trap wrong total"
+invoice = "inv_1045_wrong_total"
+sender = "supplier"
+expected = "held:arithmetic"
+
+[[sample]]
+name = "trap unknown supplier"
+invoice = "inv_2001_stranger"
+sender = "stranger"
+expected = "stranger"
+
+[[sample]]
+name = "trap price change"
+invoice = "inv_1046_price_change"
+sender = "supplier"
+expected = "held:price_change"
+
+[[sample]]
+name = "trap prompt injection"
+invoice = "inv_1047_injection"
+sender = "supplier"
+expected = "held:suspicious"
