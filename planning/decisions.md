@@ -266,3 +266,10 @@ Format: date, context, decision, rejected, why, affects. Locked docs change only
   - P2-T08 owns these edits to `agents/schemas.py`, `agents/prompts/`, `ledger/checks/base.py` and `ledger/checks/suspicious.py`, and adds tests where the phrase appears only in a footer (`other_text`) and only in the PDF text layer.
 - Rejected: Asking the model to return the full raw text (doubles output tokens per invoice); relying on the extractor flag alone (the model under injection may not flag itself).
 - Affects: planning/build-plan.md P2-T08, T-233..T-235 (tick after P2-T08)
+
+## D-035 Database trigger for posted journal immutability
+- Date: 2026-11-18
+- Context: G-2 was enforced only by the ORM guard (ledger/guard.py), which Core or raw SQL bypasses. P2-T08 and its verifier confirmed no code updates a posted entry or its lines after posting; the only status change on a posted path is pending_approval to posted, and revise/reject act on held entries only.
+- Decision: Migration 0004 adds `journal_immutable()` with BEFORE UPDATE OR DELETE row triggers on `journal_entries` (refuses when OLD.status = 'posted') and `journal_lines` (refuses when the parent entry is posted). INSERT of lines is not blocked, so posting paths that write the entry before its lines keep working. TRUNCATE (test teardown) is unaffected.
+- Rejected: Blocking line INSERT on posted entries (breaks entry-then-lines posting order).
+- Affects: api/src/bookkeeper/migrations/versions/20261118_0004_journal_immutable_trigger.py, P2-T10 tests

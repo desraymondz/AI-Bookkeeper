@@ -173,11 +173,13 @@ UI change: no
 
 ## Verifier notes carried forward
 - Done (migration 0002): `journal_lines` and `check_results` FKs are RESTRICT.
-- Open: DB trigger refusing UPDATE/DELETE on posted journal entries and lines (draft in P1-T03 report). Decide after P2-T08 shows which columns change after posting. ORM guard (ledger/guard.py) does not cover Core/raw SQL; never write journal tables outside `bookkeeper.ledger`.
+- Done (D-035, migration 0004): DB trigger refusing UPDATE/DELETE on posted journal entries and lines. ORM guard (ledger/guard.py) does not cover Core/raw SQL; never write journal tables outside `bookkeeper.ledger`.
 - P4-T01: depreciation entries need an `asset_id` link on journal entries for per-asset accumulated depreciation (F-021.3); request schema change.
 - Auth wiring: feature routers are plain `APIRouter`s; `main.py` (orchestrator) registers them with `dependencies=[Depends(require_boss)]` from `bookkeeper.auth.deps`. Public routes: `/api/auth/*`, `/api/config`, `/api/test/login` (test env), `/telegram/webhook`. P1-T04 adds a test that walks `app.routes` and asserts 401 for every non-public route (T-026), so later routers are covered automatically.
 - T-005 (all write paths) and T-011 tick only when the last write path (P4-T02 depreciation) is merged; P1-T03 proves the service-level guarantee.
 - Open (P2-T09 verifier): a revoked user vanishes from /settings/users on reload because /api/users omits non-boss users without a telegram id; T-073 passes in-session only. Decide in P3 whether revoked users stay listed (API change in web_api/users.py) and add a Revoke e2e.
+- P3-T01: boss assistant text handler must run before approvals.matches_text, or approvals must match only while approvals.awaiting_edit(ctx); the router has no fall-through (P2-T08 verifier).
+- T-140 and T-237 tick in P3-T04: recap calls invoice_pipeline.pending_items and stranger.pending_strangers.
 - T-237 ticks in P3-T04: recap must list pending strangers via telegram.handlers.stranger.pending_strangers(session).
 - Done (P2-T02 + migration 0003): cash-flow payables detected by subtype trade_payable.
 - Fixed in P2-T09: web/src/features/auth/auth.test.tsx T-024 fails under parallel load (config mock called once, likely a request leaking from the previous test). Passes alone 5/5. Fix in P2-T09 (first web card): scope the mock to the test render or await idle queries before asserting.
@@ -249,3 +251,12 @@ Owns: web/src/features/{suppliers,users,telegram}/, routes for /settings/{suppli
 Depends on P2-T02. Uses web/e2e/support only.
 
 Batches: B4 = T01 ‖ T05 ‖ T06 ‖ T07; B5 = T02 ‖ T03 ‖ T04; B6 = T08 ‖ T09.
+
+### P2-T10  Invoice pipeline hardening (from P2-T08 verifier)
+Feature: G-2, G-7, F-015     Tests: T-005 (DB layer only), regression of T-129..T-139
+Owns: api/src/bookkeeper/agents/graphs/invoice.py, api/src/bookkeeper/telegram/handlers/approvals.py, api/src/bookkeeper/agents/services.py, api/src/bookkeeper/main.py (lifespan close only), tests/integration/{ledger,invoices}/
+1. Tests that the D-035 trigger refuses raw SQL (`text()`) UPDATE and DELETE on a posted entry and its lines, and allows the pending_approval to posted transition and held-entry line rewrites.
+2. `post()` on LedgerError: notify the boss with a template and audit it; never leave a silent stall.
+3. Approval decision and `invoice_pipeline.resume` in one unit: if resume raises, the decision is not marked and the boss can press again.
+4. Close the lazy checkpointer pool and LLM client in the app lifespan.
+5. approvals.matches_text claims boss text only while an edit is awaited.
