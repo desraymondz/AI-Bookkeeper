@@ -11,10 +11,62 @@ The model proposes and code decides: nothing posts unless every check passes or 
 | Telegram linking | Boss and supplier deep links (`/start <token>`), strangers get a neutral reply and the boss gets Ignore / Add / Block |
 | Invoice pipeline | PDF and photo intake, Gemini extraction, 10 checks (known supplier, arithmetic, GST, balanced, duplicate, revision, price change, period, sanity, suspicious content), auto-post with FYI, approval card with Approve / Edit / Reject, bills |
 | Boss chat | Questions about spend, sales, bills and balances; "paid 50 cash for ice today"; "sales today 1,850, cash 420, card 1,430"; `/bills` with Mark paid; `/recap` |
-| Web | Google sign-in for one boss, settings, chart of accounts, suppliers, users, Telegram connection, Journal with entry detail sheet, Trial balance, P&L, Balance sheet |
-| Eval | `bk eval` runs clean and trap invoices through the real pipeline and prints a pass/fail table |
+| Web | Google sign-in for one boss, settings, chart of accounts, suppliers, users, Telegram connection, opening balances form, Journal with entry detail sheet, Trial balance, P&L, Balance sheet |
+| Eval | `bk eval` runs clean and trap invoices through the real pipeline and prints a pass/fail table (11/11 on `gemini-3.5-flash-lite`) |
+| Tests | api 461, web 50, Playwright e2e 33, all green under `make verify` and `make e2e` |
 
-Deferred to v1 (see `planning/decisions.md#D-036`): opening balances form, Excel migration, scheduled recap and bill reminders, partial payments and mark paid by text, reversal by chat, fixed assets and depreciation, month-end close and PDF report pack, general ledger, adjusted trial balance and cash flow tabs, analytics, the full 13-trap eval set, production compose profile.
+Deferred to v1 (see `planning/decisions.md#D-036`): Excel migration, scheduled recap and bill reminders, partial payments and mark paid by text, reversal by chat, fixed assets and depreciation, month-end close and PDF report pack, general ledger, adjusted trial balance and cash flow tabs, analytics, the full 13-trap eval set, production compose profile.
+
+## How it works
+
+```
+Supplier (Telegram) ──> webhook ──> role resolved in code (boss / supplier / stranger)
+                                         │
+                              invoice LangGraph (supplier only)
+                                         │
+              Gemini extracts fields and proposes a journal entry (JSON schema)
+                                         │
+                     10 deterministic checks in ledger/ (F-013.1 to .10)
+                         │                                   │
+                   all pass                            any fail
+                         │                                   │
+          ledger posting service posts           approval card to the boss
+          + template FYI to the boss             (Approve / Edit / Reject)
+                                         │
+                Postgres (NUMERIC money, immutable posted entries)
+                                         │
+             reports/ computes every number for the bot and the web
+```
+
+- Backend: FastAPI, LangGraph, python-telegram-bot, SQLAlchemy and Alembic on Postgres 18.
+- Web: Vite, React, TypeScript, Tailwind 4, shadcn/ui. It reads the books through the API and never edits them.
+- LLM: Gemini via one wrapper in `agents/gemini.py`; model IDs come only from env.
+
+## How it was built
+
+Built with Claude Code over one day, spec first.
+
+1. Planning (`/des-plan`): brief, PRD with 31 features and 127 acceptance criteria, design tokens, tech stack and a test spec of 245 rows with fixed expected results, all in `planning/`. Every later change of direction is a dated entry in `planning/decisions.md` (D-001 to D-036).
+2. Build (`/des-build`): parallel builder agents in git worktrees, one task per branch, each checked by a blind verifier agent that saw the spec and the diff but not the builder's reasoning. Merges went to `preview` only after `make verify` was green.
+3. Guard rails: hooks in `.claude/hooks/` block edits to `.env*` and to test-spec expected results, lint every edited file and run fast tests on stop. `AGENTS.md` holds the hard rules every agent reads.
+4. Corrections the agents got wrong and how they were caught are logged in `planning/ai-log.md`. Session handoffs are in `planning/handoffs/`.
+
+## Trade-offs
+
+| Choice | Gain | Cost |
+| --- | --- | --- |
+| The LLM proposes, code decides (D-019). Ten deterministic checks gate every auto-post. | A wrong extraction or a prompt injection cannot post on its own; the eval shows 0 traps auto-posted. | More invoices go to the boss than a model-trusting design would send. |
+| Any unit price change goes to the boss (D-007). | Tight control over supplier pricing. | Noisy for suppliers with variable prices. The rule is configurable in settings. |
+| Posted entries are immutable; fixes are reversals (D-018), enforced in the service and by a DB trigger (D-035). | A real audit trail; no silent edits. | Corrections take two entries, and reversal by chat is not built yet. |
+| Fixed templates for stranger replies, acks, FYIs and recaps (D-020). | Predictable, cheap, no injection surface on outbound messages. | Less natural wording. |
+| Gemini Flash-Lite for every task, set by env (D-016). | Lowest cost; models swap without code changes. | Weaker on messy scans. `bk eval` is the signal for when to upgrade a task. |
+| Telegram first, web read-only (D-004). | The boss works where they already are; the web cannot corrupt the books. | Settings and setup still need a laptop. |
+| One deployment per business (D-001). | Simple auth, data isolated by default. | No multi-tenant SaaS. |
+| Report math only in `reports/` (D-013). | Bot, web and future PDF always show the same numbers. | The web cannot compute anything locally, even a total. |
+| Telegram webhook instead of long polling. | Scales with traffic: Telegram pushes updates to a normal HTTP route, so the bot runs behind any web server or load balancer, and dev uses the same code path as production. No rewrite when moving from demo to production. | More setup: it needs a public HTTPS URL, so local runs need an ngrok tunnel and `make webhook` after each URL change. Polling would have worked with no tunnel. |
+| Vite + React SPA instead of Next.js (D-012). | One backend (FastAPI) owns auth, data and report math, and the web is a static bundle that can be served from anywhere. New pages and features plug into the same JSON API that the bot uses, so the frontend can grow without moving logic. | No server-side rendering or Next.js conveniences (file routing, server actions). For a signed-in dashboard that is not a real loss. |
+| PostgreSQL instead of SQLite. | Built to grow: safe concurrent writes from the webhook, web and background jobs, exact `NUMERIC` money, database triggers for immutability, and pgvector ready for future features such as semantic search over invoices. No database migration later. | Heavier to run: needs Docker for local dev, where SQLite would be a single file. |
+| Demo sprint scope cut (D-036): the last four phases were cut to a 6-hour prototype, and per-task verifiers were replaced by one blind verifier at the end. | A working end-to-end demo in time. | Fewer features, and less review per change in the sprint than in phases 1 and 2. |
 
 ## Credentials to create
 
