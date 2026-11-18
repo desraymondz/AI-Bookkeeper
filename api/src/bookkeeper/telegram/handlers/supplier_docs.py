@@ -62,7 +62,7 @@ async def handle(ctx: HandlerContext) -> None:
     )
     await ctx.reply(render("document_received"))
     await ctx.session.commit()
-    await invoice_pipeline.start(stored.document.id)
+    await invoice_pipeline.start(stored.document.id, ctx)
 
 
 HANDLER = Handler("supplier_docs", frozenset({Role.SUPPLIER}), matches, handle)

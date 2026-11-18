@@ -1,4 +1,4 @@
-"""Shared LLM client and LangGraph checkpointer. See planning/03-tech-stack.md#5-langgraph-layout."""
+"""LLM client and checkpointer. See planning/03-tech-stack.md#5-langgraph-layout."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -43,7 +43,7 @@ async def open_checkpointer(database_url: str) -> AsyncIterator[AsyncPostgresSav
     )
     await pool.open()
     try:
-        saver = AsyncPostgresSaver(pool)  # type: ignore[arg-type]
+        saver = AsyncPostgresSaver(pool)
         await saver.setup()
         yield saver
     finally:

@@ -71,5 +71,7 @@ async def test_d034_phrase_only_in_pdf_text_layer_fails() -> None:
 
 async def test_d034_clean_document_text_passes() -> None:
     text = "Ocean Fresh INV-1043 Payment terms 30 days Total 436.00"
-    result = await suspicious.run(make_ctx(invoice=make_invoice(other_text=text), document_text=text))
+    result = await suspicious.run(
+        make_ctx(invoice=make_invoice(other_text=text), document_text=text)
+    )
     assert result.passed
